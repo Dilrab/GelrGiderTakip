@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36310.24
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apigelirgider.webapi", "apigelirgider.webapi\apigelirgider.webapi.csproj", "{4AE657BA-2EA9-41C1-8615-F7A6EC527287}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGelirGider.WebUI", "ApiGelirGider.WebUI\ApiGelirGider.WebUI.csproj", "{DF44F525-8F47-4154-8383-76D5F5BBEFBA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4AE657BA-2EA9-41C1-8615-F7A6EC527287}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AE657BA-2EA9-41C1-8615-F7A6EC527287}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AE657BA-2EA9-41C1-8615-F7A6EC527287}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AE657BA-2EA9-41C1-8615-F7A6EC527287}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CFC1B828-413D-46A9-BFB1-7CD978DEEAE4}
+	EndGlobalSection
+EndGlobal

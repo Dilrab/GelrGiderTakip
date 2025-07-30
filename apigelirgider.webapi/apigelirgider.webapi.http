@@ -1,0 +1,6 @@
+@apigelirgider.webapi_HostAddress = http://localhost:5164
+
+GET {{apigelirgider.webapi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
