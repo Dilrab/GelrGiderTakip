@@ -19,60 +19,64 @@ namespace ApiGelirGider.WebApi.Controllers
             _mapper = mapper;
         }
 
-        // 🔍 DTO ile listeleme
+        // 🔍 Tüm gelirleri listele
         [HttpGet]
-        public IActionResult IncomeList()
+        public IActionResult GetAll()
         {
             var incomeEntities = _context.Incomes.ToList();
             var incomeDtos = _mapper.Map<List<IncomeDto>>(incomeEntities);
             return Ok(incomeDtos);
         }
 
-        // 🆕 DTO ile ekleme
+        // 🔍 Tek gelir bilgisi
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            var income = _context.Incomes.Find(id);
+            if (income == null)
+                return NotFound($"ID {id} için gelir bulunamadı.");
+
+            var incomeDto = _mapper.Map<IncomeDto>(income);
+            return Ok(incomeDto);
+        }
+
+        // 🆕 Yeni gelir ekle
         [HttpPost]
-        public IActionResult CreateIncome([FromBody] IncomeCreateDto dto)
+        public IActionResult Create([FromBody] IncomeCreateDto dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var newIncome = _mapper.Map<Income>(dto);
-            _context.Incomes.Add(newIncome);
+            var income = _mapper.Map<Income>(dto);
+            _context.Incomes.Add(income);
             _context.SaveChanges();
-            return Ok("Gelir Ekleme Başarılı");
+            return CreatedAtAction(nameof(GetById), new { id = income.Id }, _mapper.Map<IncomeDto>(income));
         }
 
-        // 🔄 Güncelleme: İsteğe bağlı olarak DTO ile güncelleme yapılabilir
-        [HttpPut]
-        public IActionResult UpdateIncome([FromBody] Income income)
+        // 🔄 Güncelle
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] IncomeUpdateDto dto)
         {
-            _context.Incomes.Update(income);
-            _context.SaveChanges();
-            return Ok("Gelir Güncelleme Başarılı");
-        }
-
-        // ❌ Silme
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteIncome(int id)
-        {
-            var income = await _context.Incomes.FindAsync(id);
-            if (income == null)
+            var existingIncome = _context.Incomes.Find(id);
+            if (existingIncome == null)
                 return NotFound();
 
-            _context.Incomes.Remove(income);
-            await _context.SaveChangesAsync();
+            _mapper.Map(dto, existingIncome);
+            _context.SaveChanges();
             return NoContent();
         }
 
-        // 🔍 Tek veri çekme + DTO dönüşümü
-        [HttpGet("GetIncome")]
-        public IActionResult GetIncome(int id)
+        // ❌ Sil
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
             var income = _context.Incomes.Find(id);
             if (income == null)
                 return NotFound();
 
-            var incomeDto = _mapper.Map<IncomeDto>(income);
-            return Ok(incomeDto);
+            _context.Incomes.Remove(income);
+            _context.SaveChanges();
+            return NoContent();
         }
     }
 }

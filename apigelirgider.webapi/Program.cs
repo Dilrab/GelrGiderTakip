@@ -11,6 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 //entity dönüþümü için gerekli
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
+//Baðalantý içn Cors engelini kaldýrýr
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowUI",
+        policy => policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()); // UI projesi hangi portta çalýþýyorsa onu belirtebilirsin
+});
+
+app.UseCors("AllowUI");
+
 
 
 // servis tanýmlamasý 
