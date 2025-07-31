@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "apigelirgider.webapi", "api
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGelirGider.WebUI", "ApiGelirGider.WebUI\ApiGelirGider.WebUI.csproj", "{DF44F525-8F47-4154-8383-76D5F5BBEFBA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dto", "Dto\Dto.csproj", "{048A4EA2-119A-4622-82BC-8755F40DA9B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF44F525-8F47-4154-8383-76D5F5BBEFBA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{048A4EA2-119A-4622-82BC-8755F40DA9B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{048A4EA2-119A-4622-82BC-8755F40DA9B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{048A4EA2-119A-4622-82BC-8755F40DA9B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{048A4EA2-119A-4622-82BC-8755F40DA9B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

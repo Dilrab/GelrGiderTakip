@@ -1,15 +1,17 @@
-﻿using ApiGelirGider.WebApi.DTOs.Income;
-using IncomeExpenseTracker.Entities;
+﻿using ApiGelirGider.WebApi.DTOs.Category;
+using ApiGelirGider.WebApi.DTOs.Income;
 using AutoMapper;
+using IncomeExpenseTracker.Entities;
 
-
-namespace apigelirgider.webapi.Mappings
+namespace ApiGelirGider.WebApi.Mappings
 {
     public class MappingProfile : Profile //entity dönüşümü için açıldı
     {
         public MappingProfile()
         {
-            CreateMap<IncomeCreateDto, Income>();
+            CreateMap<Income, IncomeDto>().ReverseMap();
+            CreateMap<IncomeDto, Income>().ReverseMap();
+            CreateMap<CategoryCreateDto, Category>().ReverseMap();
         }
     }
 }

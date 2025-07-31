@@ -1,0 +1,56 @@
+﻿
+    <div class="container mt-5">
+
+ 
+
+        <!-- Başlık ve Butonlar -->
+        <div class="header d-flex justify-content-between align-items-center">
+            <h3 class="m-0">📁 Kategori Listesi</h3>
+            <div>
+                <!--<button class="btn btn-success btn-custom me-2" onclick="yeniKategori()">+ Yeni</button> @Url.Action("Add","Category")-->
+            <a href="@Url.Action("Add", "Category")" class=" btn btn-success">🟢 Yeni</a>
+
+                <button class="btn btn-outline-primary btn-custom" onclick="tumunuYenile()">↻ Yenile</button>
+            </div>
+        </div>
+
+        <!-- Kategori Tablosu -->
+        <div class="card shadow-sm">
+            <div class="card-body table-responsive">
+                <table class="table table-hover table-bordered table-custom">
+                    <thead>
+                        <tr>
+                            <th>🔖 Ad</th>
+                            <th>📂 Tür</th>
+                            <th style="width: 180px;">⚙️ İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Kira</td>
+                            <td>Gider</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Maaş</td>
+                            <td>Gelir</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Market</td>
+                            <td>Gider</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+

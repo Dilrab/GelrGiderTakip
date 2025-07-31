@@ -15,6 +15,9 @@ namespace ApiGelirGider.WebUI.Controllers
 
         public IActionResult Index()
         {
+
+
+
             return View();
         }
 

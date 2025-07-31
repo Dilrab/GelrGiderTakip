@@ -1,56 +1,49 @@
-using apigelirgider.webapi.Mappings;
-using ApiGelirGider.WebApi.Context;
-using AutoMapper;
+ï»¿using ApiGelirGider.WebApi.Context;
+using ApiGelirGider.WebApi.Mappings;
+using ApiGelirGider.WebApi.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-//entity dönüşümü için gerekli
-builder.Services.AddAutoMapper(typeof(MappingProfile));
+// ? Servis TanÄ±mlamalarÄ±
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-//Bağalantı içn Cors engelini kaldırır
+// ?? AutoMapper - DTO dÃ¶nÃ¼ÅŸÃ¼mÃ¼
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+//Program iiÃ§ne kayÄ±t
+builder.Services.AddScoped<IncomeService>();
+
+// ?? CORS AyarÄ± (UI projesi ile baÄŸlantÄ± iÃ§in)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUI",
         policy => policy
             .AllowAnyHeader()
             .AllowAnyMethod()
-            .AllowAnyOrigin()); // UI projesi hangi portta çalışıyorsa onu belirtebilirsin
+            .AllowAnyOrigin()); // Gerekirse .WithOrigins("http://localhost:7027") ÅŸeklinde kÄ±sÄ±tlayabilirsin
 });
 
-app.UseCors("AllowUI");
+//Cors izni
 
-
-
-// servis tanımlaması 
+// ?? VeritabanÄ± baÄŸlantÄ±sÄ±
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+// âš™ï¸ UygulamayÄ± oluÅŸturuyoruz
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// âœ… Middleware pipeline iÅŸlemleri
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseRouting();
-
 app.UseHttpsRedirection();
-
+app.UseRouting();
+app.UseCors("AllowUI");
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

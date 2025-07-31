@@ -1,7 +1,10 @@
 ﻿using ApiGelirGider.WebApi.Context;
+using ApiGelirGider.WebApi.DTOs.Category;
+using AutoMapper;
 using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace apigelirgider.webapi.Controllers
 {
@@ -11,25 +14,35 @@ namespace apigelirgider.webapi.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly ApiContext _context; //Köklü değişikliklerde işleri kolaylaştırıcak olan yapı
-        public CategoriesController(ApiContext context)
+        private readonly IMapper _mapper; //Köklü değişikliklerde işleri kolaylaştırıcak olan yapı
+        public CategoriesController(ApiContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public IActionResult CategoryList()
+        public IActionResult CategoryList(int catagoriType)
         {
-            var values = _context.Categories.ToList();
+            var values = _context.Categories.Where(x => x.Type == catagoriType).ToList();
             return Ok(values);
         }
 
         [HttpPost]
-        public IActionResult CreateCategory(Category category)
+        public IActionResult CreateCategory(CategoryCreateDto category)
         {
-            _context.Categories.Add(category);
+            if (!ModelState.IsValid)
+            {
+                throw new InvalidOperationException("Model geçersiz.");
+            }
+            _context.Categories.Add(_mapper.Map<Category>(category));
             _context.SaveChanges();
             return Ok("Kategori Ekleme Başarili");
         }
+
+
+
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

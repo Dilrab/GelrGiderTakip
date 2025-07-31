@@ -1,0 +1,16 @@
+﻿
+@model ApiGelirGider.WebApi.DTOs.Category.CategoryCreateDto 
+ 
+<form asp-action="Add" method="post">
+    <label asp-for="CategoryName">Kategori Adı</label>
+    <input asp-for="CategoryName" class="form-control" />
+
+    <label asp-for="Type">Tür</label>
+    <select asp-for="Type" class="form-select">
+        <option value="Gelir">Gelir</option>
+        <option value="Gider">Gider</option>
+    </select>
+
+    <button type="submit" class="btn btn-success">✔️ Kaydet</button>
+</form> 
+
