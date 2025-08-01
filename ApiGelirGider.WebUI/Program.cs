@@ -1,3 +1,6 @@
+using NuGet.Configuration;
+using System.Net.Http.Headers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,6 +14,11 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyOrigin();
     });
+});
+
+builder.Services.AddHttpClient("myClient", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7080/"); // Temel adresi ayarlayabilirsin (Swagger  olan)
 });
 
 

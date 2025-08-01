@@ -1,4 +1,4 @@
-﻿namespace ApiGelirGider.WebApi.DTOs.User
+﻿namespace ApiGelirGider.DTOs.User
 {
     public class UserDto
     {

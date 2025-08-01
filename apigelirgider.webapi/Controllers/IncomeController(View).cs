@@ -1,4 +1,4 @@
-﻿using ApiGelirGider.WebApi.DTOs.Income;
+﻿using ApiGelirGider.DTOs.Income;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 

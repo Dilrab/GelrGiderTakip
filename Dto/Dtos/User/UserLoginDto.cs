@@ -1,4 +1,4 @@
-﻿namespace apigelirgider.webapi.Dtos.User
+﻿namespace apigelirgider.Dtos.User
 {
     public class UserLoginDto
     {

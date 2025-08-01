@@ -1,16 +1,48 @@
-﻿
-@model ApiGelirGider.WebApi.DTOs.Category.CategoryCreateDto 
+﻿@model ApiGelirGider.DTOs.Category.CategoryDtoEdit
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage == null ? "" : Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ResultMessage == null ? "" : Model.ResultMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @Model.ResultMessage
+    </div>
+}
+
  
-<form asp-action="Add" method="post">
-    <label asp-for="CategoryName">Kategori Adı</label>
-    <input asp-for="CategoryName" class="form-control" />
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0">🆕 Yeni Kategori Ekle</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Post" method="post">
+            <div class="mb-3">
+                <label asp-for="CategoryName" class="form-label">Kategori Adı</label>
+                <input asp-for="CategoryName" class="form-control" placeholder="Örn: Gıda, Fatura..." />
+                <span asp-validation-for="CategoryName" class="text-danger"></span>
+            </div>
 
-    <label asp-for="Type">Tür</label>
-    <select asp-for="Type" class="form-select">
-        <option value="Gelir">Gelir</option>
-        <option value="Gider">Gider</option>
-    </select>
+            <div class="mb-3">
+                <label asp-for="Type" class="form-label">Tür</label>
+                <select asp-for="Type" class="form-select">
+                    <option value="">-- Seçiniz --</option>
+                    <option value="1">Gelir</option>
+                    <option value="2">Gider</option>
+                </select>
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
 
-    <button type="submit" class="btn btn-success">✔️ Kaydet</button>
-</form> 
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i> Kaydet
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 

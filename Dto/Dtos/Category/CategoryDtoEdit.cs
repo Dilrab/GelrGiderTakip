@@ -1,4 +1,4 @@
-﻿namespace ApiGelirGider.WebApi.DTOs.Category
+﻿namespace ApiGelirGider.DTOs.Category
 {
     public class CategoryDtoEdit : CategoryCreateDto
     {

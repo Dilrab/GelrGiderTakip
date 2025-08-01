@@ -1,10 +1,9 @@
-﻿using ApiGelirGider.WebApi.Context;
-using ApiGelirGider.WebApi.DTOs.Category;
+﻿using ApiGelirGider.DTOs.Category;
+using ApiGelirGider.WebApi.Context;
 using AutoMapper;
+using Azure;
 using IncomeExpenseTracker.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace apigelirgider.webapi.Controllers
 {
@@ -29,15 +28,20 @@ namespace apigelirgider.webapi.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateCategory(CategoryCreateDto category)
+        public async Task<IActionResult> Post(CategoryDtoEdit category)
         {
             if (!ModelState.IsValid)
             {
                 throw new InvalidOperationException("Model geçersiz.");
             }
+
+            //Response<object> value = new Response<object>();
+
             _context.Categories.Add(_mapper.Map<Category>(category));
             _context.SaveChanges();
-            return Ok("Kategori Ekleme Başarili");
+            category.ResultMessage = "Kategori Ekleme Başarili";
+
+            return Ok(category);
         }
 
 

@@ -1,5 +1,5 @@
-﻿using ApiGelirGider.WebApi.DTOs.Category;
-using ApiGelirGider.WebApi.DTOs.Income;
+﻿using ApiGelirGider.DTOs.Category;
+using ApiGelirGider.DTOs.Income;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
 

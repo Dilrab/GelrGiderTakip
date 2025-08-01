@@ -1,4 +1,4 @@
-﻿namespace ApiGelirGider.WebApi.DTOs.Expense
+﻿namespace ApiGelirGider.DTOs.Expense
 {
     public class ExpenseDto
     {

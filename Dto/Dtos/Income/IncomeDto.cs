@@ -1,5 +1,5 @@
 ﻿
-namespace ApiGelirGider.WebApi.DTOs.Income
+namespace ApiGelirGider.DTOs.Income
 {
     public class IncomeDto
     {

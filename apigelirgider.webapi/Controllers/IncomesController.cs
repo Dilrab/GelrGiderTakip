@@ -1,9 +1,8 @@
-﻿using ApiGelirGider.WebApi.Context;
-using ApiGelirGider.WebApi.DTOs.Income;
+﻿using ApiGelirGider.DTOs.Income;
+using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
