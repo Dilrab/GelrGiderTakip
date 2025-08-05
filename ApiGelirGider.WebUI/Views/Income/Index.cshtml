@@ -1,58 +1,62 @@
 ﻿@{
-    ViewData["Title"] = "Gider Kategorileri";
+    ViewData["Title"] = "Gelir Kategorileri";
 }
 
 <div class="container mt-5">
     <!-- Başlık ve Butonlar -->
     <div class="header d-flex justify-content-between align-items-center">
-        <h3 class="m-0">📁 Gider Listesi</h3>
+        <h3 class="m-0">💰 Gelir Listesi</h3>
         <div>
-            <a href="/Expense/Add" class="btn btn-success">🟢 Yeni Gider Ekle</a>
+            <a href="/Income/Add" class="btn btn-success">🟢 Yeni Gelir Ekle</a>
             <button class="btn btn-outline-primary btn-custom" onclick="location.reload()">↻ Yenile</button>
         </div>
     </div>
 
-    <!-- Gider Tablosu -->
+    <!-- Gelir Tablosu -->
     <div class="card shadow-sm mt-3">
         <div class="card-body table-responsive">
             <table class="table table-hover table-bordered table-custom">
                 <thead>
                     <tr>
                         <th>🔖 Kategori ID</th>
-                        <th>💸 ExpenseAmount</th>
-                        <th>👤 UserId</th>
-                        <th>🗓️ ExpenseDate</th>
+                        <th>💸 Tutar (IncomeAmount)</th>
+                        <th>📄 Kaynak (IncomeSource)</th>
+                        <th>👤 Kullanıcı (UserId)</th>
+                        <th>🗓️ Tarih (IncomeDate)</th>
                         <th style="width: 220px;">⚙️ İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>1</td>
-                        <td>250.00 ₺</td>
+                        <td>1,250.00 ₺</td>
+                        <td>Serbest Meslek</td>
                         <td>101</td>
                         <td>2025-08-01</td>
                         <td>
-                            <a href="/Expense/Edit/1" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
+                            <a href="/Income/Edit/1" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
                             <button class="btn btn-sm btn-danger">🗑️ Sil</button>
                         </td>
                     </tr>
                     <tr>
                         <td>2</td>
-                        <td>75.50 ₺</td>
+                        <td>3,000.00 ₺</td>
+                        <td>Maaş</td>
                         <td>102</td>
                         <td>2025-08-02</td>
                         <td>
-                            <a href="/Expense/Edit/2" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
+                            <a href="/Income/Edit/2" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
                             <button class="btn btn-sm btn-danger">🗑️ Sil</button>
                         </td>
                     </tr>
                     <tr>
                         <td>3</td>
-                        <td>430.00 ₺</td>
+                        <td>500.00 ₺</td>
+                        <td>Yatırım</td>
                         <td>103</td>
                         <td>2025-08-03</td>
                         <td>
-                            <a href="/Expense/Edit/3" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
+                            <a href="/Income/Edit/3" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
                             <button class="btn btn-sm btn-danger">🗑️ Sil</button>
                         </td>
                     </tr>

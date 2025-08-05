@@ -1,6 +1,8 @@
 ﻿using ApiGelirGider.DTOs.Income;
 using ApiGelirGider.WebApi.Context;
+using ApiGelirGider.WebApi.Services;
 using AutoMapper;
+using Azure;
 using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,64 +21,71 @@ namespace ApiGelirGider.WebApi.Controllers
             _mapper = mapper;
         }
 
-        // 🔍 Tüm gelirleri listele
-        [HttpGet]
-        public IActionResult GetAll()
-        {
-            var incomeEntities = _context.Incomes.ToList();
-            var incomeDtos = _mapper.Map<List<IncomeDto>>(incomeEntities);
-            return Ok(incomeDtos);
-        }
-
-        // 🔍 Tek gelir bilgisi
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            var income = _context.Incomes.Find(id);
-            if (income == null)
-                return NotFound($"ID {id} için gelir bulunamadı.");
-
-            var incomeDto = _mapper.Map<IncomeDto>(income);
-            return Ok(incomeDto);
-        }
-      
-        // 🆕 Yeni gelir ekle
-        [HttpPost]
-        public IActionResult Create([FromBody] IncomeCreateDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var income = _mapper.Map<Income>(dto);
-            _context.Incomes.Add(income);
-            _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = income.IncomeId }, _mapper.Map<IncomeDto>(income));
-        }
-
-        // 🔄 Güncelle
-        //[HttpPut("{id}")]
-       // public IActionResult Update(int id, [FromBody] IncomeUpdateDto dto)
+        //// 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
+        //[HttpGet]
+        //public IActionResult ExpenseList(int? categoryId = null)
         //{
-          //  var existingIncome = _context.Incomes.Find(id);
-            //if (existingIncome == null)
-              //  return NotFound();
+        //    var expenses = _context.Expenses
+        //        .Where(x => categoryId == null || x.CategoryId == categoryId)
+        //        .ToList();
 
-            //_mapper.Map(dto, existingIncome);
-            //_context.SaveChanges();
-            //return NoContent();
+        //    return Ok(expenses);
         //}
 
-        // ❌ Sil
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        // 2. Yeni gelir ekleme
+        [HttpPost]
+        public async Task<IActionResult> Post(IncomeDto ıncome)
         {
-            var income = _context.Incomes.Find(id);
-            if (income == null)
-                return NotFound();
+            if (!ModelState.IsValid)
+            {
+                throw new InvalidOperationException("Model geçersiz.");
+            }
 
-            _context.Incomes.Remove(income);
+            //Response<object> value = new Response<object>();
+
+            _context.Incomes.Add(_mapper.Map<Income>(ıncome));
             _context.SaveChanges();
+            ıncome.ResultMessage = "Gelir Ekleme Başarili";
+
+            return Ok(ıncome);
+        }
+
+        // 3. Gider silme
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteIncome(int id)
+        {
+            var ıncome = await _context.Incomes.FindAsync(id);
+            if (ıncome == null)
+                return NotFound("Gelir bulunamadı.");
+
+            _context.Incomes.Remove(ıncome);
+            await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        // 4. Tek gelir getirme
+        [HttpGet("GetIncome")]
+        public IActionResult GetIncome(int id)
+        {
+            var ıncome = _context.Incomes.Find(id);
+            if (ıncome == null)
+                return NotFound("Gelir bulunamadı.");
+
+            return Ok(ıncome);
+        }
+
+        // 5. Gider güncelleme
+        //[HttpPut]
+        //public IActionResult UpdateExpense(Expense expense)
+        //{
+        //    var existing = _context.Expenses.Find(expense.Id);
+        //    if (existing == null)
+        //        return NotFound("Gider bulunamadı.");
+
+        //    _context.Entry(existing).CurrentValues.SetValues(expense);
+        //    _context.SaveChanges();
+        //    return Ok("Gider güncelleme başarılı.");
+        //}
     }
+
 }

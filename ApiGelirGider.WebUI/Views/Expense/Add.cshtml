@@ -1,3 +1,49 @@
-﻿
+﻿@model ApiGelirGider.DTOs.Expense.ExpenseCreateDto
 
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage == null ? "" : Model.ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.ErrorMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ResultMessage == null ? "" : Model.ResultMessage))
+{
+    <div class="alert alert-success" role="alert">
+        @Model.ResultMessage
+    </div>
+}
+
+<form asp-action="Post" method="post">
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">🆕 Yeni Gider Ekle</h5>
+        </div>
+        <div class="card-body"></div>
+    <div>
+        <label asp-for="ExpenseAmount"></label>
+        <input asp-for="ExpenseAmount" class="form-control" type="number" step="0.01" required />
+    </div>
+
+    <div>
+        <label asp-for="CategoryId"></label>
+        <input asp-for="CategoryId" class="form-control"  typeof="number" required>
+         
+        </input>
+    </div>
+
+    <div>
+        <label asp-for="UserId"></label>
+        <input asp-for="UserId" class="form-control" type="number" required />
+    </div>
+
+    <div>
+        <label asp-for="ExpenseDate"></label>
+        <input asp-for="ExpenseDate" class="form-control" type="date" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Gideri Kaydet</button>
+</form>
 

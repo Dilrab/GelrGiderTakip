@@ -1,4 +1,5 @@
 ﻿using ApiGelirGider.DTOs.Category;
+using ApiGelirGider.DTOs.Expense;
 using ApiGelirGider.DTOs.Income;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
@@ -12,6 +13,8 @@ namespace ApiGelirGider.WebApi.Mappings
             CreateMap<Income, IncomeDto>().ReverseMap();
             CreateMap<IncomeDto, Income>().ReverseMap();
             CreateMap<CategoryCreateDto, Category>().ReverseMap();
+            CreateMap<ExpenseCreateDto,Expense>().ReverseMap();
+            CreateMap<IncomeCreateDto,Income>().ReverseMap();
         }
     }
 }

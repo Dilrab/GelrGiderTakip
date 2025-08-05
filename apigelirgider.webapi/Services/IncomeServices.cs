@@ -1,12 +1,13 @@
-﻿
+﻿using ApiGelirGider.DTOs;   
 using ApiGelirGider.DTOs.Income;
-
+using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
+using System;
 
 namespace ApiGelirGider.WebApi.Services
 {
-    public class IncomeService
+    public class IncomeService 
     {
         private readonly IMapper _mapper;
 
