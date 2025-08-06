@@ -3,7 +3,11 @@ using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Azure;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
@@ -14,76 +18,111 @@ namespace ApiGelirGider.WebApi.Controllers
         private readonly ApiContext _context;
         private readonly IMapper _mapper;
 
-        public ExpensesController(ApiContext context, IMapper mapper)
+        public  ExpensesController(ApiContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        //// 1. Giderleri listeleme (isteğe bağlı kategori filtresi)
-        //[HttpGet]
-        //public IActionResult ExpenseList(int? categoryId = null)
-        //{
-        //    var expenses = _context.Expenses
-        //        .Where(x => categoryId == null || x.CategoryId == categoryId)
-        //        .ToList();
-
-        //    return Ok(expenses);
-        //}
-
-        // 2. Yeni gider ekleme
-        [HttpPost]
-        public async Task<IActionResult> Post(ExpenseDto expense)
+        // ------------------------------------------------------------------------------------------------
+        // 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
+        // GET: api/incomes?categoryId=5
+        // ------------------------------------------------------------------------------------------------
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<ExpenseDto>>> GetAll(int? categoryId = null)
         {
-            if (!ModelState.IsValid)
-            {
-                throw new InvalidOperationException("Model geçersiz.");
-            }
+            var entities = await _context.Expenses
+                .Where(x => categoryId == null || x.CategoryId == categoryId)
+                .ToListAsync();
 
-            //Response<object> value = new Response<object>();
-
-            _context.Expenses.Add(_mapper.Map<Expense>(expense));
-            _context.SaveChanges();
-            expense.ResultMessage = "Gider Ekleme Başarili";
-
-            return Ok(expense);
+            var dtos = _mapper.Map<List<ExpenseDto>>(entities);
+            return Ok(dtos);
         }
 
-        // 3. Gider silme
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteExpense(int id)
+        // ------------------------------------------------------------------------------------------------
+        // 2. Tek bir geliri getirme
+        // GET: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ExpenseDto>> GetById(int id)
         {
-            var expense = await _context.Expenses.FindAsync(id);
-            if (expense == null)
-                return NotFound("Gider bulunamadı.");
+            var entity = await _context.Expenses.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
 
-            _context.Expenses.Remove(expense);
+            var dto = _mapper.Map<ExpenseDto>(entity);
+            return Ok(dto);
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // 3. Yeni gelir ekleme
+        // POST: api/incomes
+        // ------------------------------------------------------------------------------------------------
+        [HttpPost]
+        public async Task<ActionResult<ExpenseDto>> Create([FromBody] ExpenseDto expenseDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var entity = _mapper.Map<Expense>(expenseDto);
+            _context.Expenses.Add(entity);
             await _context.SaveChangesAsync();
+
+            expenseDto.ExpenseId = entity.ExpenseId;
+            expenseDto.ResultMessage = "Gelir ekleme başarılı";
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = entity.ExpenseId },
+                expenseDto);
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // 4. Gelir güncelleme
+        // PUT: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] ExpenseDto expenseDto)
+        {
+            if (id != expenseDto.ExpenseId)
+                return BadRequest("Yol parametresi ile DTO'daki ID uyuşmuyor.");
+
+            var entity = await _context.Expenses.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
+
+            _mapper.Map(expenseDto, entity);
+            _context.Entry(entity).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.Expenses.AnyAsync(e => e.ExpenseId == id))
+                    return NotFound("Gelir bulunamadı.");
+                throw;
+            }
+
             return NoContent();
         }
 
-        // 4. Tek gider getirme
-        [HttpGet("GetExpense")]
-        public IActionResult GetExpense(int id)
+        // ------------------------------------------------------------------------------------------------
+        // 5. Gelir silme
+        // DELETE: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            var expense = _context.Expenses.Find(id);
-            if (expense == null)
-                return NotFound("Gider bulunamadı.");
+            var entity = await _context.Expenses.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
 
-            return Ok(expense);
+            _context.Expenses.Remove(entity);
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
-
-        // 5. Gider güncelleme
-        //[HttpPut]
-        //public IActionResult UpdateExpense(Expense expense)
-        //{
-        //    var existing = _context.Expenses.Find(expense.Id);
-        //    if (existing == null)
-        //        return NotFound("Gider bulunamadı.");
-
-        //    _context.Entry(existing).CurrentValues.SetValues(expense);
-        //    _context.SaveChanges();
-        //    return Ok("Gider güncelleme başarılı.");
-        //}
     }
 }
+

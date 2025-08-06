@@ -1,77 +1,127 @@
 ﻿using ApiGelirGider.DTOs.Category;
 using ApiGelirGider.WebApi.Context;
 using AutoMapper;
-using Azure;
 using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
-namespace apigelirgider.webapi.Controllers
+namespace ApiGelirGider.WebApi.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ApiContext _context; //Köklü değişikliklerde işleri kolaylaştırıcak olan yapı
-        private readonly IMapper _mapper; //Köklü değişikliklerde işleri kolaylaştırıcak olan yapı
+        private readonly ApiContext _context;
+        private readonly IMapper _mapper;
+
         public CategoriesController(ApiContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
+        // ------------------------------------------------------------------------------------------------
+        // 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
+        // GET: api/incomes?categoryId=5
+        // ------------------------------------------------------------------------------------------------
         [HttpGet]
-        public IActionResult CategoryList(int catagoriType)
+        public async Task<ActionResult<IEnumerable<CategoryDtoEdit>>> GetAll(int? categoryId = null)
         {
-            var values = _context.Categories.Where(x => x.Type == catagoriType).ToList();
-            return Ok(values);
+            var entities = await _context.Categories
+                .Where(x => categoryId == null || x.Id == categoryId)
+                .ToListAsync();
+
+            var dtos = _mapper.Map<List<CategoryDtoEdit>>(entities);
+            return Ok(dtos);
         }
 
+        // ------------------------------------------------------------------------------------------------
+        // 2. Tek bir geliri getirme
+        // GET: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
+        [HttpGet("{id}")]
+        public async Task<ActionResult<CategoryDtoEdit>> GetById(int id)
+        {
+            var entity = await _context.Categories.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
+
+            var dto = _mapper.Map<CategoryDtoEdit>(entity);
+            return Ok(dto);
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // 3. Yeni gelir ekleme
+        // POST: api/incomes
+        // ------------------------------------------------------------------------------------------------
         [HttpPost]
-        public async Task<IActionResult> Post(CategoryDtoEdit category)
+        public async Task<ActionResult<CategoryDtoEdit>> Create([FromBody] CategoryDtoEdit CategoryDtoEdit)
         {
             if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var entity = _mapper.Map<Category>(CategoryDtoEdit);
+            _context.Categories.Add(entity);
+            await _context.SaveChangesAsync();
+
+            CategoryDtoEdit.Id = entity.Id;
+            CategoryDtoEdit.ResultMessage = "Gelir ekleme başarılı";
+
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = entity.Id },
+                CategoryDtoEdit);
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // 4. Gelir güncelleme
+        // PUT: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryDtoEdit CategoryDtoEdit)
+        {
+            if (id != CategoryDtoEdit.Id)
+                return BadRequest("Yol parametresi ile DTO'daki ID uyuşmuyor.");
+
+            var entity = await _context.Categories.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
+
+            _mapper.Map(CategoryDtoEdit, entity);
+            _context.Entry(entity).State = EntityState.Modified;
+
+            try
             {
-                throw new InvalidOperationException("Model geçersiz.");
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.Categories.AnyAsync(e => e.Id == id))
+                    return NotFound("Gelir bulunamadı.");
+                throw;
             }
 
-            //Response<object> value = new Response<object>();
-
-            _context.Categories.Add(_mapper.Map<Category>(category));
-            _context.SaveChanges();
-            category.ResultMessage = "Kategori Ekleme Başarili";
-
-            return Ok(category);
+            return NoContent();
         }
 
-
-
-
+        // ------------------------------------------------------------------------------------------------
+        // 5. Gelir silme
+        // DELETE: api/incomes/5
+        // ------------------------------------------------------------------------------------------------
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var entity = await _context.Categories.FindAsync(id);
+            if (entity == null)
+                return NotFound("Gelir bulunamadı.");
 
-            if (category == null)
-                return NotFound(); // id'ye ait kategori bulunamadıysa 404 döner
-
-            _context.Categories.Remove(category); // Artık null olmadığından eminiz
+            _context.Categories.Remove(entity);
             await _context.SaveChangesAsync();
-            return NoContent(); // Silme başarılıysa 204 döner
-        }
-
-        [HttpGet("GetCategory")]
-        public IActionResult GetCategory(int id)
-        {
-            var value = _context.Categories.Find(id);
-            return Ok(value);
-        }
-        [HttpPut]
-        public IActionResult UpdateCategory(Category category)
-        {
-            _context.Categories.Update(category);
-            _context.SaveChanges();
-            return Ok("Kategori Güncelleme Başarili");
+            return NoContent();
         }
     }
 }

@@ -1,5 +1,12 @@
-﻿@{
-    ViewData["Title"] = "Gider Kategorileri";
+﻿@model IEnumerable<ApiGelirGider.DTOs.Expense.ExpenseDto>
+
+@using System.Globalization
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Gider Listesi";
+    // Model null olabilir, bu yüzden boş listeye yedekliyoruz
+    var expenses = Model ?? Enumerable.Empty<ApiGelirGider.DTOs.Expense.ExpenseDto>();
 }
 
 <div class="container mt-5">
@@ -7,55 +14,62 @@
     <div class="header d-flex justify-content-between align-items-center">
         <h3 class="m-0">📁 Gider Listesi</h3>
         <div>
-            <a href="/Expense/Add" class="btn btn-success">🟢 Yeni Gider Ekle</a>
-            <button class="btn btn-outline-primary btn-custom" onclick="location.reload()">↻ Yenile</button>
+            <a asp-controller="Expense" asp-action="Add" class="btn btn-success">🟢 Yeni Gider Ekle</a>
+            <a asp-controller="Expense" asp-action="Index" class="btn btn-outline-primary">↻ Yenile</a>
         </div>
     </div>
 
-    <!-- Gider Tablosu -->
+    <!-- Dinamik Gider Tablosu -->
     <div class="card shadow-sm mt-3">
         <div class="card-body table-responsive">
             <table class="table table-hover table-bordered table-custom">
                 <thead>
                     <tr>
                         <th>🔖 Kategori ID</th>
-                        <th>💸 ExpenseAmount</th>
-                        <th>👤 UserId</th>
-                        <th>🗓️ ExpenseDate</th>
+                        <th>💸 Tutar</th>
+                        <th>👤 Kullanıcı</th>
+                        <th>🗓️ Tarih</th>
                         <th style="width: 220px;">⚙️ İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>250.00 ₺</td>
-                        <td>101</td>
-                        <td>2025-08-01</td>
+                    @if (!expenses.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center">Kayıt bulunamadı.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in expenses)
+                        {
+                            <tr>
+                                <td>@item.CategoryId</td>
+                                <td>
+                                    @item.ExpenseAmount.ToString(
+                                    "C2",
+                                                        CultureInfo.GetCultureInfo("tr-TR")
+                                                        )
+                        </td>
+                        <td>@item.UserId</td>
+                        <td>@item.ExpenseDate.ToString("yyyy-MM-dd")</td>
                         <td>
-                            <a href="/Expense/Edit/1" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
+                            <a asp-controller="Expense" asp-action="Edit"
+                               asp-route-id="@item.ExpenseId"
+                               class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
+                            <form asp-controller="Expense" asp-action="Delete"
+                                  asp-route-id="@item.ExpenseId" method="post"
+                                  class="d-inline">
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Silmek istediğinize emin misiniz?');">
+                                    🗑️ Sil
+                                </button>
+                            </form>
                         </td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>75.50 ₺</td>
-                        <td>102</td>
-                        <td>2025-08-02</td>
-                        <td>
-                            <a href="/Expense/Edit/2" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>430.00 ₺</td>
-                        <td>103</td>
-                        <td>2025-08-03</td>
-                        <td>
-                            <a href="/Expense/Edit/3" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
-                        </td>
-                    </tr>
+                                        }
+                    }
                 </tbody>
             </table>
         </div>

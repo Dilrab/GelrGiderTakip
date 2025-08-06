@@ -1,7 +1,12 @@
-﻿using ApiGelirGider.WebApi.Context;
+﻿using ApiGelirGider.Services;
+using ApiGelirGider.Services.Implementations;
+using ApiGelirGider.Services.Interfaces;
+using ApiGelirGider.WebApi.Context;
 using ApiGelirGider.WebApi.Mappings;
-using ApiGelirGider.WebApi.Services;
 using Microsoft.EntityFrameworkCore;
+
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +18,7 @@ builder.Services.AddSwaggerGen();
 // ?? AutoMapper - DTO dönüşümü
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 //Program iiçne kayıt
-builder.Services.AddScoped<IncomeService>();
+//builder.Services.AddScoped<Imp>();
 
 // ?? CORS Ayarı (UI projesi ile bağlantı için)
 builder.Services.AddCors(options =>
@@ -25,7 +30,9 @@ builder.Services.AddCors(options =>
             .AllowAnyOrigin()); // Gerekirse .WithOrigins("http://localhost:7027") şeklinde kısıtlayabilirsin
 });
 
-//Cors izni
+builder.Services.AddScoped<IIncomeService, IncomeService>();
+builder.Services.AddScoped<EExpenseService, ExpenseService>();
+builder.Services.AddScoped<CCategoryService, CategoryService>();
 
 // ?? Veritabanı bağlantısı
 builder.Services.AddDbContext<ApiContext>(options =>

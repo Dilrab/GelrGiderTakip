@@ -1,56 +1,70 @@
-﻿
-    <div class="container mt-5">
+﻿@model IEnumerable<ApiGelirGider.DTOs.Category.CategoryDtoEdit>
 
- 
+@using System.Linq
 
-        <!-- Başlık ve Butonlar -->
-        <div class="header d-flex justify-content-between align-items-center">
-            <h3 class="m-0">📁 Kategori Listesi</h3>
-            <div>
-                <!--<button class="btn btn-success btn-custom me-2" onclick="yeniKategori()">+ Yeni</button> @Url.Action("Add","Category")-->
-            <a href="@Url.Action("Add", "Category")" class=" btn btn-success">🟢 Yeni</a>
+@{
+    ViewData["Title"] = "Kategori Listesi";
+    // Model null ise boş listeye yedekleyelim
+    var categories = Model ?? Enumerable.Empty<ApiGelirGider.DTOs.Category.CategoryDtoEdit>();
+}
 
-                <button class="btn btn-outline-primary btn-custom" onclick="tumunuYenile()">↻ Yenile</button>
-            </div>
+<div class="container mt-5">
+    <!-- Başlık ve Butonlar -->
+    <div class="header d-flex justify-content-between align-items-center">
+        <h3 class="m-0">📁 Kategori Listesi</h3>
+        <div>
+            <a asp-controller="Category" asp-action="Add" class="btn btn-success">
+                🟢 Yeni
+            </a>
+            <button class="btn btn-outline-primary btn-custom" onclick="location.reload()">
+                ↻ Yenile
+            </button>
         </div>
-
-        <!-- Kategori Tablosu -->
-        <div class="card shadow-sm">
-            <div class="card-body table-responsive">
-                <table class="table table-hover table-bordered table-custom">
-                    <thead>
-                        <tr>
-                            <th>🔖 Ad</th>
-                            <th>📂 Tür</th>
-                            <th style="width: 180px;">⚙️ İşlemler</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Kira</td>
-                            <td>Gider</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Maaş</td>
-                            <td>Gelir</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Market</td>
-                            <td>Gider</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm">🗑️ Sil</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
 
+    <!-- Dinamik Kategori Tablosu -->
+    <div class="card shadow-sm mt-3">
+        <div class="card-body table-responsive">
+            <table class="table table-hover table-bordered table-custom">
+                <thead>
+                    <tr>
+                        <th>🔖 Ad</th>
+                        <th>📂 Tür</th>
+                        <th style="width: 180px;">⚙️ İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!categories.Any())
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center">Kayıt bulunamadı.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var item in categories)
+                        {
+                            <tr>
+                                <td>@item.CategoryName</td>
+                                <td>@item.Type</td>
+                                <td>
+                                    <form asp-controller="Category"
+                                          asp-action="Delete"
+                                          asp-route-id="@item.Id"
+                                          method="post"
+                                          class="d-inline">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Silmek istediğinize emin misiniz?');">
+                                            🗑️ Sil
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

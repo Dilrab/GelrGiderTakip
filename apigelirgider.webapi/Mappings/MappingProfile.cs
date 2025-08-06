@@ -13,8 +13,13 @@ namespace ApiGelirGider.WebApi.Mappings
             CreateMap<Income, IncomeDto>().ReverseMap();
             CreateMap<IncomeDto, Income>().ReverseMap();
             CreateMap<CategoryCreateDto, Category>().ReverseMap();
+            CreateMap<Category,CategoryDtoEdit >().ReverseMap();
             CreateMap<ExpenseCreateDto,Expense>().ReverseMap();
             CreateMap<IncomeCreateDto,Income>().ReverseMap();
+            CreateMap<Expense, ExpenseDto>().ReverseMap();
+
+
+
         }
     }
 }

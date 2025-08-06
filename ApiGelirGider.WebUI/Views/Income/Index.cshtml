@@ -1,65 +1,75 @@
-﻿@{
-    ViewData["Title"] = "Gelir Kategorileri";
+﻿@model IEnumerable<ApiGelirGider.DTOs.Income.IncomeDto>
+
+@using System.Globalization
+@using System.Linq
+
+@{
+    ViewData["Title"] = "Gelir Listesi";
+    var incomes = Model ?? Enumerable.Empty<ApiGelirGider.DTOs.Income.IncomeDto>();
 }
 
 <div class="container mt-5">
-    <!-- Başlık ve Butonlar -->
     <div class="header d-flex justify-content-between align-items-center">
         <h3 class="m-0">💰 Gelir Listesi</h3>
         <div>
-            <a href="/Income/Add" class="btn btn-success">🟢 Yeni Gelir Ekle</a>
-            <button class="btn btn-outline-primary btn-custom" onclick="location.reload()">↻ Yenile</button>
+            <a asp-controller="Income" asp-action="Add" class="btn btn-success">
+                🟢 Yeni Gelir Ekle
+            </a>
+            <a asp-controller="Income" asp-action="Index" class="btn btn-outline-primary">
+                ↻ Yenile
+            </a>
         </div>
     </div>
 
-    <!-- Gelir Tablosu -->
     <div class="card shadow-sm mt-3">
         <div class="card-body table-responsive">
-            <table class="table table-hover table-bordered table-custom">
+            <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
                         <th>🔖 Kategori ID</th>
-                        <th>💸 Tutar (IncomeAmount)</th>
-                        <th>📄 Kaynak (IncomeSource)</th>
-                        <th>👤 Kullanıcı (UserId)</th>
-                        <th>🗓️ Tarih (IncomeDate)</th>
+                        <th>💸 Tutar</th>
+                        <th>📄 Kaynak</th>
+                        <th>👤 Kullanıcı</th>
+                        <th>🗓️ Tarih</th>
                         <th style="width: 220px;">⚙️ İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>1,250.00 ₺</td>
-                        <td>Serbest Meslek</td>
-                        <td>101</td>
-                        <td>2025-08-01</td>
+                    @if (!incomes.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center">Kayıt bulunamadı.</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var item in incomes)
+                        {
+                            <tr>
+                                <td>@item.CategoryId</td>
+                                <td>
+                                    @item.IncomeAmount.ToString(
+                                    "C0",
+                                                        CultureInfo.GetCultureInfo("tr-TR")
+                                                        )
+                        </td>
+                        <td>@item.IncomeSource</td>
+                        <td>@item.UserId</td>
+                        <td>@item.IncomeDate.ToString("yyyy-MM-dd")</td>
                         <td>
-                            <a href="/Income/Edit/1" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
+                            <form asp-controller="Income" asp-action="Delete"
+                                  asp-route-id="@item.IncomeId"
+                                  method="post" class="d-inline">
+                                <button type="submit"
+                                        class="btn btn-sm btn-danger"
+                                        onclick="return confirm('Silmek istediğinize emin misiniz?');">
+                                    🗑️ Sil
+                                </button>
+                            </form>
                         </td>
                     </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>3,000.00 ₺</td>
-                        <td>Maaş</td>
-                        <td>102</td>
-                        <td>2025-08-02</td>
-                        <td>
-                            <a href="/Income/Edit/2" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>500.00 ₺</td>
-                        <td>Yatırım</td>
-                        <td>103</td>
-                        <td>2025-08-03</td>
-                        <td>
-                            <a href="/Income/Edit/3" class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <button class="btn btn-sm btn-danger">🗑️ Sil</button>
-                        </td>
-                    </tr>
+                                        }
+                    }
                 </tbody>
             </table>
         </div>
