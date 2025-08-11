@@ -1,24 +1,64 @@
+using ApiGelirGider.DTOs.Expense;
+using ApiGelirGider.DTOs.Income;
 using ApiGelirGider.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace ApiGelirGider.WebUI.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
-        public IActionResult Index()
+        // ? Ana sayfa: Son 5 gider + Son 5 gelir
+        public async Task<IActionResult> Index()
         {
+            var client = _httpClientFactory.CreateClient("myClient");
 
+            var expenseResponse = await client.GetAsync("api/expenses/last5");
+            var incomeResponse = await client.GetAsync("api/incomes/last5");
 
+            var expenses = new List<ExpenseDto>();
+            var incomes = new List<IncomeDto>();
 
-            return View();
+            if (expenseResponse.IsSuccessStatusCode)
+            {
+                var expenseJson = await expenseResponse.Content.ReadAsStringAsync();
+                expenses = JsonConvert.DeserializeObject<List<ExpenseDto>>(expenseJson);
+            }
+            else
+            {
+                _logger.LogWarning("Gider API'den veri alýnamadý: " + expenseResponse.StatusCode);
+            }
+
+            if (incomeResponse.IsSuccessStatusCode)
+            {
+                var incomeJson = await incomeResponse.Content.ReadAsStringAsync();
+                incomes = JsonConvert.DeserializeObject<List<IncomeDto>>(incomeJson);
+            }
+            else
+            {
+                _logger.LogWarning("Gelir API'den veri alýnamadý: " + incomeResponse.StatusCode);
+            }
+
+            var model = new DashboardViewModel
+            {
+                LastExpenses = expenses,
+                LastIncomes = incomes
+            };
+
+            return View(model); // Views/Home/Index.cshtml
         }
 
         public IActionResult Privacy()
@@ -33,3 +73,4 @@ namespace ApiGelirGider.WebUI.Controllers
         }
     }
 }
+

@@ -123,5 +123,17 @@ namespace ApiGelirGider.WebApi.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+        // Son 5 Gelir
+        [HttpGet("last5")]
+        public async Task<IActionResult> GetLast5Incomes()
+        {
+            var last5Incomes = await _context.Incomes
+                .OrderByDescending(i => i.IncomeDate)
+                .Take(5)
+                .ToListAsync();
+
+            return Ok(last5Incomes);
+        }
+
     }
 }

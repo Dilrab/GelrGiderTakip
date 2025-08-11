@@ -38,6 +38,13 @@ builder.Services.AddScoped<CCategoryService, CategoryService>();
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//
+builder.Services.AddHttpClient("myClient", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:5001/"); // senin API adresin
+});
+
+
 // ⚙️ Uygulamayı oluşturuyoruz
 var app = builder.Build();
 

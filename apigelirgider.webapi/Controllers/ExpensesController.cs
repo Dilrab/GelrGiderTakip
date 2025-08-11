@@ -123,5 +123,17 @@ namespace ApiGelirGider.WebApi.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpGet("last5")]
+        public async Task<IActionResult> GetLast5Expenses()
+        {
+            var last5Expenses = await _context.Expenses
+                .OrderByDescending(e => e.ExpenseDate) // Tarihe göre azalan sırala
+                .Take(5)                         // Sadece 5 tanesini al
+                .ToListAsync();
+
+            return Ok(last5Expenses);
+        }
+
     }
 }
