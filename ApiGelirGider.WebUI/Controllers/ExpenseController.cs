@@ -88,4 +88,3 @@ namespace ApiGelirGider.WebUI.Controllers
         }
     }
 }
-

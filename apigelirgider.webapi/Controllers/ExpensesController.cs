@@ -18,7 +18,7 @@ namespace ApiGelirGider.WebApi.Controllers
         private readonly ApiContext _context;
         private readonly IMapper _mapper;
 
-        public  ExpensesController(ApiContext context, IMapper mapper)
+        public ExpensesController(ApiContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
@@ -125,4 +125,3 @@ namespace ApiGelirGider.WebApi.Controllers
         }
     }
 }
-
