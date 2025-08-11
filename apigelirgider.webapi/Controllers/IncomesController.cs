@@ -134,6 +134,13 @@ namespace ApiGelirGider.WebApi.Controllers
 
             return Ok(last5Incomes);
         }
+        //toplam gelir
+        [HttpGet("total")]
+        public async Task<IActionResult> GetTotalIncome()
+        {
+            var total = await _context.Incomes.SumAsync(x => x.IncomeAmount);
+            return Ok(total);
+        }
 
     }
 }

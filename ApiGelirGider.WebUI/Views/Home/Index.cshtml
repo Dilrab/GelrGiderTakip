@@ -1,5 +1,5 @@
-﻿@model DashboardViewModel
-
+﻿@using System.Globalization
+@model ApiGelirGider.WebUI.Models.DashboardViewModel
 
 @{
     ViewData["Title"] = "Home Page";
@@ -8,128 +8,106 @@
 <!-- Page Heading -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
     <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-        <i class="fas fa-download fa-sm text-white-50"></i> Generate Report
-    </a>
 </div>
 
-
-
-<!-- Content Row -->
+<!-- Top Cards Row -->
 <div class="row">
 
-    <!-- Earnings (Monthly) Card Example -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
-            <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                            Earnings (Monthly)
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">$40,000</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Earnings (Monthly) Card Example -->
+    <!-- Toplam Gelir -->
     <div class="col-xl-3 col-md-6 mb-4">
         <div class="card border-left-success shadow h-100 py-2">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                            Earnings (Annual)
+                            Toplam Gelir
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">$215,000</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            @Model.TotalIncome.ToString("N2") ₺
+                        </div>
                     </div>
                     <div class="col-auto">
-                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        <i class="fas fa-wallet fa-2x text-gray-300"></i>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Income (Monthly) Card Example -->
+    <!-- Toplam Gider -->
     <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Toplam Gider
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            @Model.TotalExpense.ToString("N2") ₺
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-receipt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gelir Yüzdesi (Monthly) -->
+    @* İstersen burayı aylık gelir yüzdesiyle doldurabilirsin *@
+    <div class="col-xl-3 col-md-6 mb-4">
+        @{
+            var gelir = Model.TotalIncome;
+            var gider = Model.TotalExpense;
+            var toplam = gelir + gider;
+            double gelirYuzde = toplam > 0
+            ? (double)gelir * 100d / (double)toplam
+            : 0d;
+        }
         <div class="card border-left-info shadow h-100 py-2">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            Income(Monthly)
-                        </div>
-                        <div class="row no-gutters align-items-center">
-                            <div class="col-auto">
-                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">50%</div>
-                            </div>
-                            <div class="col">
-                                <div class="progress progress-sm mr-2">
-                                    <div class="progress-bar bg-info" role="progressbar"
-                                         style="width: 50%" aria-valuenow="50" aria-valuemin="0"
-                                         aria-valuemax="100"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
-                    </div>
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                    Gelir Oranı
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    @gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Expense Mounthy Card Example -->
+    <!-- Gider Yüzdesi (Monthly) -->
     <div class="col-xl-3 col-md-6 mb-4">
+        @{
+            double giderYuzde = (Model.TotalIncome + Model.TotalExpense) > 0
+            ? (double)Model.TotalExpense * 100d / (double)(Model.TotalIncome + Model.TotalExpense)
+            : 0d;
+        }
         <div class="card border-left-warning shadow h-100 py-2">
             <div class="card-body">
-                <div class="row no-gutters align-items-center">
-                    <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                            Expense(Monthly)
-                        </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">18</div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="fas fa-comments fa-2x text-gray-300"></i>
-                    </div>
+                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                    Gider Oranı
+                </div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                    @giderYuzde.ToString("0.##", CultureInfo.InvariantCulture)%
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
-<!-- Content Row -->
-
+<!-- Charts Row -->
 <div class="row">
 
-    <!-- Area Chart -->
+    <!-- Area Chart Placeholder -->
     <div class="col-xl-8 col-lg-7">
         <div class="card shadow mb-4">
-            <!-- Card Header - Dropdown -->
+            <!-- Card Header -->
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                 <h6 class="m-0 font-weight-bold text-primary">Earnings Overview</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                         aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
-                </div>
             </div>
             <!-- Card Body -->
             <div class="card-body">
@@ -140,62 +118,104 @@
         </div>
     </div>
 
-    <!-- Pie Chart -->
+    <!-- Gelir-Gider Oranı Card -->
     <div class="col-xl-4 col-lg-5">
         <div class="card shadow mb-4">
-            <!-- Card Header - Dropdown -->
+            <!-- Card Header -->
             <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">Revenue Sources</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                         aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
-                </div>
+                <h6 class="m-0 font-weight-bold text-primary">Gelir – Gider Dağılımı</h6>
             </div>
             <!-- Card Body -->
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
-                    <canvas id="myPieChart"></canvas>
-                </div>
-                <div class="mt-4 text-center small">
-                    <span class="mr-2">
-                        <i class="fas fa-circle text-primary"></i> Direct
-                    </span>
-                    <span class="mr-2">
-                        <i class="fas fa-circle text-success"></i> Social
-                    </span>
-                    <span class="mr-2">
-                        <i class="fas fa-circle text-info"></i> Referral
-                    </span>
+                @* Sunucu tarafında yüzde hesaplamaları *@
+                @{
+                   
+                    double gelirYuzde2 = toplam > 0
+                    ? (double)gelir * 100d / (double)toplam
+                    : 0d;
+                    double giderYuzde2 = toplam > 0
+                    ? (double)gider * 100d / (double)toplam
+                    : 0d;
+
+                    string gelirWidth = gelirYuzde2
+                    .ToString("0.##", CultureInfo.InvariantCulture) + "%";
+                    string giderWidth = giderYuzde2
+                    .ToString("0.##", CultureInfo.InvariantCulture) + "%";
+                }
+
+                <!-- Grafik Barı -->
+                <div class="position-relative w-100" style="
+                        height: 30px;
+                        background-color: #eee;
+                        border-radius: 8px;
+                        overflow: hidden;
+                    ">
+                    <!-- Gelir Dilimi -->
+                    <div class="position-absolute top-0 start-0 h-100 d-flex align-items-center justify-content-center text-white fw-bold"
+                         style="
+                            width: @gelirWidth;
+                            background-color: #4CAF50;
+                            font-size: 0.8rem;
+                         ">
+                        @gelirYuzde2.ToString("0.##", CultureInfo.InvariantCulture)%
+                    </div>
+
+                    <!-- Gider Dilimi -->
+                    <div class="position-absolute top-0"
+                         style="
+                            left: @gelirWidth;
+                            width: @giderWidth;
+                            height: 100%;
+                            background-color: #F44336;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: white;
+                            font-size: 0.8rem;
+                            font-weight: bold;
+                         ">
+                        @giderYuzde2.ToString("0.##", CultureInfo.InvariantCulture)%
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
+<div class="container-fluid">
+    <!-- Top Cards Row -->
+    <div class="row mb-4">
+        
+    <!-- Charts Row -->
+    <div class="row mb-4">
+                        <!-- Gelir Dilimi -->
+                        <div class="position-absolute top-0 start-0 h-100 d-flex align-items-center justify-content-center text-white fw-bold"
+                             style="
+                                width: @($"{gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)}%");
+                                background-color: #4CAF50;
+                                font-size: 0.8rem;
+                             ">
+                            @gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%
+                        </div>
 
-<!-- Content Row -->
-<div class="row">
+                       
+    <!-- Alt Kısımda Sayısal Gösterim -->
+    <div class="mb-4">
+        <p><strong>Gelir:</strong> @gelir.ToString("N2") ₺ (@gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%)</p>
+        <p><strong>Gider:</strong> @gider.ToString("N2") ₺ (@giderYuzde.ToString("0.##", CultureInfo.InvariantCulture)%)</p>
+    </div>
 
-    <!-- Content Column -->
-    <div class="col-lg-6 mb-4">
+    <!-- Content Row -->
+    <div class="row">
 
         <!-- Son 5 Gider -->
-        <div class="container my-4">
-            <div class="card shadow-sm border-0">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4b6cb7, #182848);">
                     <h5 class="mb-0">💸 Son 5 Gider</h5>
                 </div>
                 <div class="card-body">
-                    @if (Model.LastExpenses != null && Model.LastExpenses.Any())
+                    @if (Model.LastExpenses?.Any() == true)
                     {
                         <div class="table-responsive">
                             <table class="table table-striped align-middle mb-0">
@@ -209,8 +229,12 @@
                                     @foreach (var item in Model.LastExpenses)
                                     {
                                         <tr>
-                                            <td class="text-start text-success fw-bold">@item.ExpenseAmount.ToString("N2")</td>
-                                            <td class="text-center">@item.ExpenseDate.ToString("dd MMM yyyy")</td>
+                                            <td class="text-start text-danger fw-bold">
+                                                @item.ExpenseAmount.ToString("N2")
+                                            </td>
+                                            <td class="text-center">
+                                                @item.ExpenseDate.ToString("dd MMM yyyy")
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -225,89 +249,29 @@
                     }
                 </div>
             </div>
-        </div>
 
-
-        <!-- Color System -->
-        <div class="row">
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-primary text-white shadow">
-                    <div class="card-body">
-                        Primary
-                        <div class="text-white-50 small">#4e73df</div>
+            <!-- Color System (Placeholder) -->
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card bg-primary text-white shadow">
+                        <div class="card-body">
+                            Primary
+                            <div class="text-white-50 small">#4e73df</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-success text-white shadow">
-                    <div class="card-body">
-                        Success
-                        <div class="text-white-50 small">#1cc88a</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-info text-white shadow">
-                    <div class="card-body">
-                        Info
-                        <div class="text-white-50 small">#36b9cc</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-warning text-white shadow">
-                    <div class="card-body">
-                        Warning
-                        <div class="text-white-50 small">#f6c23e</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-danger text-white shadow">
-                    <div class="card-body">
-                        Danger
-                        <div class="text-white-50 small">#e74a3b</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-secondary text-white shadow">
-                    <div class="card-body">
-                        Secondary
-                        <div class="text-white-50 small">#858796</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-light text-black shadow">
-                    <div class="card-body">
-                        Light
-                        <div class="text-black-50 small">#f8f9fc</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card bg-dark text-white shadow">
-                    <div class="card-body">
-                        Dark
-                        <div class="text-white-50 small">#5a5c69</div>
-                    </div>
-                </div>
+                <!-- Diğer renk kartlarını buraya ekleyebilirsin -->
             </div>
         </div>
-
-    </div>
-
-    <div class="col-lg-6 mb-4">
 
         <!-- Son 5 Gelir -->
-        <div class="container my-4">
-            <div class="card shadow-sm border-0">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm border-0 mb-4">
                 <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #4b6cb7, #182848);">
-                    <h5 class="mb-0">💸 Son 5 Gider</h5>
+                    <h5 class="mb-0">💸 Son 5 Gelir</h5>
                 </div>
                 <div class="card-body">
-                    @if (Model.LastExpenses != null && Model.LastIncomes.Any())
+                    @if (Model.LastIncomes?.Any() == true)
                     {
                         <div class="table-responsive">
                             <table class="table table-striped align-middle mb-0">
@@ -318,11 +282,15 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var item in  Model.LastIncomes)
+                                    @foreach (var item in Model.LastIncomes)
                                     {
                                         <tr>
-                                            <td class="text-start text-success fw-bold">@item.IncomeAmount.ToString("N2")</td>
-                                            <td class="text-center">@item.IncomeDate.ToString("dd MMM yyyy")</td>
+                                            <td class="text-start text-success fw-bold">
+                                                @item.IncomeAmount.ToString("N2")
+                                            </td>
+                                            <td class="text-center">
+                                                @item.IncomeDate.ToString("dd MMM yyyy")
+                                            </td>
                                         </tr>
                                     }
                                 </tbody>
@@ -332,32 +300,34 @@
                     else
                     {
                         <div class="alert alert-info text-center mb-0">
-                            <i class="bi bi-info-circle me-2"></i> Henüz gider verisi bulunamadı.
+                            <i class="bi bi-info-circle me-2"></i> Henüz gelir verisi bulunamadı.
                         </div>
                     }
                 </div>
             </div>
-        </div>
 
-        <!-- Approach -->
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Development Approach</h6>
-            </div>
-            <div class="card-body">
-                <p>
-                    SB Admin 2 makes extensive use of Bootstrap 4 utility classes in order to reduce
-                    CSS bloat and poor page performance. Custom CSS classes are used to create
-                    custom components and custom utility classes.
-                </p>
-                <p class="mb-0">
-                    Before working with this theme, you should become familiar with the
-                    Bootstrap framework, especially the utility classes.
-                </p>
+            <!-- Development Approach (Placeholder) -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Development Approach</h6>
+                </div>
+                <div class="card-body">
+                    <p>
+                                Bu dashboard uygulaması, gerçek zamanlı olarak gelir ve gider verilerinizi
+                                takip etmenize ve finansal durumunuzu hızlıca analiz etmenize olanak tanır.
+                                ASP.NET Core MVC ile geliştirilmiş Web API’ler üzerinden veri çekilir,
+                                Entity Framework Core ile veritabanı yönetimi sağlanır ve Bootstrap 5
+                                ile duyarlı bir kullanıcı arayüzü sunulur.
+                    </p>
+                    <p class="mb-0">
+                                Grafiksel gösterimler sunucu tarafında ScottPlot kütüphanesi ile
+                                render edilirken, tablo ve kart bileşenleri tamamen Razor ve CSS
+                                ile oluşturulmuştur. Böylece JavaScript’e bağımlı kalmadan
+                                estetik ve performanslı bir deneyim elde edilir.
+                    </p>
+                </div>
             </div>
         </div>
 
     </div>
 </div>
-
-<!-- /.container-fluid -->

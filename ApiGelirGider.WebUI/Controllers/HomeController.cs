@@ -51,12 +51,33 @@ namespace ApiGelirGider.WebUI.Controllers
             {
                 _logger.LogWarning("Gelir API'den veri alýnamadý: " + incomeResponse.StatusCode);
             }
+            var incomeTotalResponse = await client.GetAsync("api/incomes/total");
+            var expenseTotalResponse = await client.GetAsync("api/expenses/total");
+
+            decimal totalIncome = 0, totalExpense = 0;
+
+            if (incomeTotalResponse.IsSuccessStatusCode)
+            {
+                var json = await incomeTotalResponse.Content.ReadAsStringAsync();
+                totalIncome = JsonConvert.DeserializeObject<decimal>(json);
+            }
+
+            if (expenseTotalResponse.IsSuccessStatusCode)
+            {
+                var json = await expenseTotalResponse.Content.ReadAsStringAsync();
+                totalExpense = JsonConvert.DeserializeObject<decimal>(json);
+            }
 
             var model = new DashboardViewModel
             {
                 LastExpenses = expenses,
-                LastIncomes = incomes
+                LastIncomes = incomes,
+                TotalIncome = totalIncome,
+                TotalExpense = totalExpense,
             };
+
+            ViewBag.TotalIncome = model.TotalIncome;
+            ViewBag.TotalExpense = model.TotalExpense;
 
             return View(model); // Views/Home/Index.cshtml
         }

@@ -134,6 +134,14 @@ namespace ApiGelirGider.WebApi.Controllers
 
             return Ok(last5Expenses);
         }
+        //toplam gier
+        [HttpGet("total")]
+        public async Task<IActionResult> GetTotalExpense()
+        {
+            var total = await _context.Expenses.SumAsync(x => x.ExpenseAmount);
+         
+            return Ok(total);
+        }
 
     }
 }
