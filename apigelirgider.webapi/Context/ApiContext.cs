@@ -1,25 +1,46 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using IncomeExpenseTracker.Entities;
-
-
-
 
 namespace ApiGelirGider.WebApi.Context
 {
     public class ApiContext : DbContext
     {
         public ApiContext(DbContextOptions<ApiContext> options)
-        : base(options)
+            : base(options)
         {
         }
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer("server=DILARA\\SQLEXPRESS;initial catalog=ApiGelirGiderDB; integrated security=true;TrustServerCertificate=true;");
-        }
+
+        // Your existing tables
         public DbSet<Category> Categories { get; set; }
-        public DbSet<Expense> Expenses { get; set; }
-        public DbSet<Income> Incomes { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<Expense>   Expenses   { get; set; }
+        public DbSet<Income>    Incomes    { get; set; }
+        public DbSet<User>      Users      { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // User tablosu yapılandırması
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(u => u.Id);
+
+                entity.Property(u => u.UserEmail)
+                      .IsRequired()
+                      .HasMaxLength(256);
+
+   
+                entity.Property(u => u.UserName)
+                      .HasMaxLength(100);
+
+               
+            });
+
+            // İsterseniz diğer varlıklarınız için de burada fluent API kuralları ekleyebilirsiniz
+
+        }
     }
+
 }
+
+

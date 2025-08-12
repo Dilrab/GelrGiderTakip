@@ -2,6 +2,7 @@ using ApiGelirGider.DTOs.Expense;
 using ApiGelirGider.DTOs.Income;
 using ApiGelirGider.WebUI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Net.Http;
@@ -21,11 +22,12 @@ namespace ApiGelirGider.WebUI.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        // ? Ana sayfa: Son 5 gider + Son 5 gelir
+        // Ana sayfa: Son 5 gider + Son 5 gelir + toplamlar
         public async Task<IActionResult> Index()
         {
             var client = _httpClientFactory.CreateClient("myClient");
 
+            // Son 5 gider ve gelir
             var expenseResponse = await client.GetAsync("api/expenses/last5");
             var incomeResponse = await client.GetAsync("api/incomes/last5");
 
@@ -39,7 +41,7 @@ namespace ApiGelirGider.WebUI.Controllers
             }
             else
             {
-                _logger.LogWarning("Gider API'den veri alýnamadý: " + expenseResponse.StatusCode);
+                _logger.LogWarning("Gider API'den veri alýnamadý: {StatusCode}", expenseResponse.StatusCode);
             }
 
             if (incomeResponse.IsSuccessStatusCode)
@@ -49,8 +51,10 @@ namespace ApiGelirGider.WebUI.Controllers
             }
             else
             {
-                _logger.LogWarning("Gelir API'den veri alýnamadý: " + incomeResponse.StatusCode);
+                _logger.LogWarning("Gelir API'den veri alýnamadý: {StatusCode}", incomeResponse.StatusCode);
             }
+
+            // Toplam gelir ve gider
             var incomeTotalResponse = await client.GetAsync("api/incomes/total");
             var expenseTotalResponse = await client.GetAsync("api/expenses/total");
 
@@ -79,7 +83,7 @@ namespace ApiGelirGider.WebUI.Controllers
             ViewBag.TotalIncome = model.TotalIncome;
             ViewBag.TotalExpense = model.TotalExpense;
 
-            return View(model); // Views/Home/Index.cshtml
+            return View(model);
         }
 
         public IActionResult Privacy()
@@ -90,8 +94,10 @@ namespace ApiGelirGider.WebUI.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }
-

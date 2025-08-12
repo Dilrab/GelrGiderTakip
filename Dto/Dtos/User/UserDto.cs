@@ -4,6 +4,6 @@
     {
         public int UserId { get; set; }                      // User ID
         public string? UserName { get; set; }             // Ad Soyad
-        public string? Email { get; set; }                // Email
+        public string? UserEmail { get; set; }                // Email
     }
 }
