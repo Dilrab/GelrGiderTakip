@@ -97,9 +97,6 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-
-
-
             <!-- Nav Item - Charts -->
             <li class="nav-item">
                 <a class="nav-link" href="charts.html">
@@ -127,8 +124,39 @@
             <div id="content">
 
                 <!-- Topbar -->
-                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
-                    <h9>Hoş geldin, @Context.Session.GetString("username")!</h9>
+                <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-4 mb-4 border-bottom">
+                    <div class="container-fluid">
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+                            </button>
+                        </form>
+
+
+                        @if (!string.IsNullOrWhiteSpace(Context.Session.GetString("username")))
+                        {
+                            <!-- Hoş Geldin Sol Taraf -->
+                            <div class="d-flex align-items-center">
+                                <img src="~/images/user-avatar.png"
+                                     alt="Kullanıcı Avatarı"
+                                     class="rounded-circle me-2"
+                                     style="width: 32px; height: 32px; object-fit: cover;">
+                                <span class="navbar-text fw-semibold text-primary">
+                                    👋 Hoş geldin, <strong>@Context.Session.GetString("username")</strong>
+                                </span>
+                            </div>
+
+                            <!-- Çıkış Sağ Taraf -->
+                            <div class="ms-auto">
+                                <a class="btn btn-danger btn-sm d-flex align-items-center"
+                                   asp-controller="Account" asp-action="Logout">
+                                    <i class="fa fa-sign-out-alt me-1"></i>
+                                    Çıkış
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </nav>
 
                     <!-- Mevcut navbar içeriği… -->
 
@@ -186,11 +214,6 @@
                                 </form>
                             </div>
                         </li>
-
-                        <!-- Nav Item - Alerts -->
-                       @*  <li class="nav-item dropdown no-arrow mx-1">
-                            <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> *@
                                 <!-- Counter - Alerts -->
                             </a>
                             <!-- Dropdown - Alerts -->
@@ -306,15 +329,6 @@
                         </li>
 
                         <div class="topbar-divider d-none d-sm-block"></div>
-
-                        <!-- Nav Item - User Information -->
-                    @*     <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
-                                <img class="img-profile rounded-circle"
-                                     src="img/undraw_profile.svg">
-                            </a> *@
                             <!-- Dropdown - User Information -->
                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
                                  aria-labelledby="userDropdown">
@@ -344,6 +358,8 @@
                 <!-- End of Topbar -->
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
+                    @RenderSection("Scripts", required: false)
+
                     @RenderBody()
             </div>
             <!-- End of Main Content -->
@@ -358,6 +374,7 @@
             <!-- End of Footer -->
 
         </div>
+
         <!-- End of Content Wrapper -->
 
     </div>

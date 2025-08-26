@@ -73,5 +73,14 @@ namespace GelirGider.WebUI.Controllers
             [JsonPropertyName("token")]
             public string Token { get; set; }
         }
+        //public IActionResult Logout()
+        //{
+        //    // Session’daki token ve diğer kullanıcı bilgilerini temizle
+        //    HttpContext.Session.Clear();
+
+        //    // Login sayfasına yönlendir
+        //    return RedirectToAction("Login", "Account");
+        //}
+
     }
 }

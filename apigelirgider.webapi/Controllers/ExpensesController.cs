@@ -5,9 +5,10 @@ using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
@@ -25,7 +26,7 @@ namespace ApiGelirGider.WebApi.Controllers
         }
 
         // ------------------------------------------------------------------------------------------------
-        // 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
+        // 1. Giderleri listeleme (isteğe bağlı kategori filtresi)
         // GET: api/incomes?categoryId=5
         // ------------------------------------------------------------------------------------------------
         [HttpGet]
@@ -40,7 +41,7 @@ namespace ApiGelirGider.WebApi.Controllers
         }
 
         // ------------------------------------------------------------------------------------------------
-        // 2. Tek bir geliri getirme
+        // 2. Tek bir gideri getirme
         // GET: api/incomes/5
         // ------------------------------------------------------------------------------------------------
         [HttpGet("{id}")]
@@ -55,7 +56,7 @@ namespace ApiGelirGider.WebApi.Controllers
         }
 
         // ------------------------------------------------------------------------------------------------
-        // 3. Yeni gelir ekleme
+        // 3. Yeni giderr ekleme
         // POST: api/incomes
         // ------------------------------------------------------------------------------------------------
         [HttpPost]
@@ -125,21 +126,33 @@ namespace ApiGelirGider.WebApi.Controllers
         }
 
         [HttpGet("last5")]
-        public async Task<IActionResult> GetLast5Expenses()
+        public async Task<IActionResult> GetLast5()
         {
-            var last5Expenses = await _context.Expenses
-                .OrderByDescending(e => e.ExpenseDate) // Tarihe göre azalan sırala
-                .Take(5)                         // Sadece 5 tanesini al
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var data = await _context.Expenses
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.ExpenseDate)
+                .Take(5)
                 .ToListAsync();
 
-            return Ok(last5Expenses);
+            return Ok(data);
         }
-        //toplam gier
+        //Son beş giderr
+
         [HttpGet("total")]
-        public async Task<IActionResult> GetTotalExpense()
+        public async Task<IActionResult> GetTotal()
         {
-            var total = await _context.Expenses.SumAsync(x => x.ExpenseAmount);
-         
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var total = await _context.Expenses
+                .Where(x => x.UserId == userId)
+                .SumAsync(x => x.ExpenseAmount);
+
             return Ok(total);
         }
 

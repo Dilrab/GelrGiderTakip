@@ -25,50 +25,49 @@ namespace ApiGelirGider.WebUI.Controllers
         // Ana sayfa: Son 5 gider + Son 5 gelir + toplamlar
         public async Task<IActionResult> Index()
         {
-            var client = _httpClientFactory.CreateClient("myClient");
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return RedirectToAction("Login", "Account");
+            }
 
-            // Son 5 gider ve gelir
-            var expenseResponse = await client.GetAsync("api/expenses/last5");
-            var incomeResponse = await client.GetAsync("api/incomes/last5");
+            var client = _httpClientFactory.CreateClient("myClient");
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            // API çaðrýlarýný paralel baþlat
+            var expenseTask = client.GetAsync("api/expenses/last5");
+            var incomeTask = client.GetAsync("api/incomes/last5");
+            var incomeTotalTask = client.GetAsync("api/incomes/total");
+            var expenseTotalTask = client.GetAsync("api/expenses/total");
+
+            await Task.WhenAll(expenseTask, incomeTask, incomeTotalTask, expenseTotalTask);
 
             var expenses = new List<ExpenseDto>();
             var incomes = new List<IncomeDto>();
-
-            if (expenseResponse.IsSuccessStatusCode)
-            {
-                var expenseJson = await expenseResponse.Content.ReadAsStringAsync();
-                expenses = JsonConvert.DeserializeObject<List<ExpenseDto>>(expenseJson);
-            }
-            else
-            {
-                _logger.LogWarning("Gider API'den veri alýnamadý: {StatusCode}", expenseResponse.StatusCode);
-            }
-
-            if (incomeResponse.IsSuccessStatusCode)
-            {
-                var incomeJson = await incomeResponse.Content.ReadAsStringAsync();
-                incomes = JsonConvert.DeserializeObject<List<IncomeDto>>(incomeJson);
-            }
-            else
-            {
-                _logger.LogWarning("Gelir API'den veri alýnamadý: {StatusCode}", incomeResponse.StatusCode);
-            }
-
-            // Toplam gelir ve gider
-            var incomeTotalResponse = await client.GetAsync("api/incomes/total");
-            var expenseTotalResponse = await client.GetAsync("api/expenses/total");
-
             decimal totalIncome = 0, totalExpense = 0;
 
-            if (incomeTotalResponse.IsSuccessStatusCode)
+            if (expenseTask.Result.IsSuccessStatusCode)
             {
-                var json = await incomeTotalResponse.Content.ReadAsStringAsync();
+                var json = await expenseTask.Result.Content.ReadAsStringAsync();
+                expenses = JsonConvert.DeserializeObject<List<ExpenseDto>>(json);
+            }
+
+            if (incomeTask.Result.IsSuccessStatusCode)
+            {
+                var json = await incomeTask.Result.Content.ReadAsStringAsync();
+                incomes = JsonConvert.DeserializeObject<List<IncomeDto>>(json);
+            }
+
+            if (incomeTotalTask.Result.IsSuccessStatusCode)
+            {
+                var json = await incomeTotalTask.Result.Content.ReadAsStringAsync();
                 totalIncome = JsonConvert.DeserializeObject<decimal>(json);
             }
 
-            if (expenseTotalResponse.IsSuccessStatusCode)
+            if (expenseTotalTask.Result.IsSuccessStatusCode)
             {
-                var json = await expenseTotalResponse.Content.ReadAsStringAsync();
+                var json = await expenseTotalTask.Result.Content.ReadAsStringAsync();
                 totalExpense = JsonConvert.DeserializeObject<decimal>(json);
             }
 
@@ -99,5 +98,7 @@ namespace ApiGelirGider.WebUI.Controllers
                 RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
             });
         }
+     
+
     }
 }

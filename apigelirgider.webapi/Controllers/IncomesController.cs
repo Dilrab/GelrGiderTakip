@@ -2,12 +2,14 @@
 using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
@@ -124,23 +126,35 @@ namespace ApiGelirGider.WebApi.Controllers
             return NoContent();
         }
         // Son 5 Gelir
+        [Authorize]
         [HttpGet("last5")]
-        public async Task<IActionResult> GetLast5Incomes()
+        public async Task<IActionResult> GetLast5()
         {
-            var last5Incomes = await _context.Incomes
-                .OrderByDescending(i => i.IncomeDate)
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var data = await _context.Incomes
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.IncomeDate)
                 .Take(5)
                 .ToListAsync();
 
-            return Ok(last5Incomes);
+            return Ok(data);
         }
         //toplam gelir
         [HttpGet("total")]
-        public async Task<IActionResult> GetTotalIncome()
+        public async Task<IActionResult> GetTotal()
         {
-            var total = await _context.Incomes.SumAsync(x => x.IncomeAmount);
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var total = await _context.Incomes
+                .Where(x => x.UserId == userId)
+                .SumAsync(x => x.IncomeAmount);
+
             return Ok(total);
         }
-
     }
 }

@@ -4,6 +4,9 @@ using ApiGelirGider.Services.Interfaces;
 using ApiGelirGider.WebApi.Context;
 using ApiGelirGider.WebApi.Mappings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,19 +18,19 @@ builder.Services.AddSwaggerGen();
 // 2) AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// 3) Uygulama servisleri
+// 3) Uygulama servisleri (DI Container)
 builder.Services.AddScoped<IIncomeService, IncomeService>();
 builder.Services.AddScoped<EExpenseService, ExpenseService>();
 builder.Services.AddScoped<CCategoryService, CategoryService>();
 
-// 4) Veritabanı — TEK kayıt ve null-koruması
+// 4) Veritabanı bağlantısı
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' bulunamadı. appsettings(.Environment).json içinde tanımlayın.");
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' bulunamadı. appsettings.json içinde tanımlayın.");
 
 builder.Services.AddDbContext<ApiContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 5) CORS
+// 5) CORS politikası
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowUI", policy =>
@@ -36,27 +39,51 @@ builder.Services.AddCors(options =>
               .AllowAnyOrigin());
 });
 
+// 6) JWT Authentication yapılandırması
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwt = builder.Configuration.GetSection("Jwt");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwt["Issuer"],
+            ValidAudience = jwt["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwt["Key"]!))
+        };
+    });
+
+// 7) Yetkilendirme servisi
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-// 6) Debug: EF’in gerçekten hangi connection string’i gördüğünü kontrol etmek için
+// 8) Debug amaçlı connection string yazdırma (isteğe bağlı)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApiContext>();
     Console.WriteLine("EF ConnectionString => " + db.Database.GetDbConnection().ConnectionString);
-    // İsterseniz: await db.Database.CanConnectAsync() ile canlı test yapabilirsiniz
 }
 
+// 9) Geliştirme ortamı Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// 10) Middleware sıralaması (doğru sıralama çok önemli)
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowUI");
-app.UseAuthorization();
+app.UseAuthentication(); // 🔹 JWT doğrulama middleware’i
+app.UseAuthorization();  // 🔹 Yetkilendirme middleware’i
+
+// 11) Controller endpoint’leri
 app.MapControllers();
 
+// 12) Uygulamayı çalıştır
 app.Run();
-
