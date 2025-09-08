@@ -10,6 +10,7 @@ namespace ApiGelirGider.DTOs.Category
         [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
         public int Type { get; set; }
 
+        public int UserId { get; set; } // 👈 Kullanıcıya aitlik
 
     }
 }

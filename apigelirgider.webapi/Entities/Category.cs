@@ -15,6 +15,7 @@ namespace IncomeExpenseTracker.Entities
 
         [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
         public int Type { get; set; }
+        public int UserId { get; set; }
 
         // İlişkili gelir ve gider kayıtları
         // public ICollection<Income> Incomes { get; set; } = new List<Income>();

@@ -35,9 +35,6 @@ namespace ApiGelirGider.WebApi.Context
 
                
             });
-
-            // İsterseniz diğer varlıklarınız için de burada fluent API kuralları ekleyebilirsiniz
-
         }
     }
 

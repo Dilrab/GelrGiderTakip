@@ -97,14 +97,6 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Nav Item - Charts -->
-            <li class="nav-item">
-                <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Kullanıcı Bilgisi</span>
-                </a>
-            </li>
-
 
             <!-- Divider -->
             <hr class="sidebar-divider d-none d-md-block">
@@ -160,24 +152,6 @@
 
                     <!-- Mevcut navbar içeriği… -->
 
-                    <ul class="navbar-nav ms-auto">
-                        @if (Context.Session.GetString("token") == null)
-                        {
-                            <li class="nav-item">
-                                <a asp-controller="Account"
-                                   asp-action="Login"
-                                   class="nav-link">
-                                    <i class="fas fa-sign-in-alt fa-sm"></i>
-                                    <span>Giriş Yap</span>
-                                </a>
-                            </li>
-                        }
-                        else
-                        {
-                            <!-- Kullanıcı dropdown’ı burada kalır -->
-                        }
-                    </ul>
-                </nav>
                     <!-- Sidebar Toggle (Topbar) -->
                     <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
                         <i class="fa fa-bars"></i>

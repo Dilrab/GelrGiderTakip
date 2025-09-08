@@ -2,16 +2,14 @@
 using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ExpensesController : ControllerBase
@@ -25,111 +23,120 @@ namespace ApiGelirGider.WebApi.Controllers
             _mapper = mapper;
         }
 
-        // ------------------------------------------------------------------------------------------------
+        // 🔐 Yardımcı metod: Token'dan UserId al
+        private int? GetUserIdFromToken()
+        {
+            var userIdStr =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                User.FindFirstValue("sub") ??
+                User.FindFirstValue("id");
+
+            return int.TryParse(userIdStr, out var userId) ? userId : null;
+        }
+
         // 1. Giderleri listeleme (isteğe bağlı kategori filtresi)
-        // GET: api/incomes?categoryId=5
-        // ------------------------------------------------------------------------------------------------
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ExpenseDto>>> GetAll(int? categoryId = null)
         {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized("Token içinde geçerli kullanıcı ID bulunamadı.");
+
             var entities = await _context.Expenses
-                .Where(x => categoryId == null || x.CategoryId == categoryId)
+                .Where(x => x.UserId == userId && (categoryId == null || x.CategoryId == categoryId))
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<ExpenseDto>>(entities);
             return Ok(dtos);
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 2. Tek bir gideri getirme
-        // GET: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
         [HttpGet("{id}")]
         public async Task<ActionResult<ExpenseDto>> GetById(int id)
         {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized();
+
             var entity = await _context.Expenses.FindAsync(id);
-            if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+            if (entity == null || entity.UserId != userId)
+                return NotFound("Gider bulunamadı veya erişim yetkiniz yok.");
 
             var dto = _mapper.Map<ExpenseDto>(entity);
             return Ok(dto);
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 3. Yeni giderr ekleme
-        // POST: api/incomes
-        // ------------------------------------------------------------------------------------------------
+        // 3. Yeni gider ekleme
         [HttpPost]
         public async Task<ActionResult<ExpenseDto>> Create([FromBody] ExpenseDto expenseDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized();
+
             var entity = _mapper.Map<Expense>(expenseDto);
+            entity.UserId = userId.Value;
+
             _context.Expenses.Add(entity);
             await _context.SaveChangesAsync();
 
             expenseDto.ExpenseId = entity.ExpenseId;
-            expenseDto.ResultMessage = "Gelir ekleme başarılı";
+            expenseDto.UserId = userId.Value;
+            expenseDto.ResultMessage = "Gider başarıyla kaydedildi.";
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = entity.ExpenseId },
-                expenseDto);
+            return CreatedAtAction(nameof(GetById), new { id = entity.ExpenseId }, expenseDto);
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 4. Gelir güncelleme
-        // PUT: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
+        // 4. Gider güncelleme
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ExpenseDto expenseDto)
         {
             if (id != expenseDto.ExpenseId)
                 return BadRequest("Yol parametresi ile DTO'daki ID uyuşmuyor.");
 
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized();
+
             var entity = await _context.Expenses.FindAsync(id);
-            if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+            if (entity == null || entity.UserId != userId)
+                return NotFound("Gider bulunamadı veya erişim yetkiniz yok.");
 
             _mapper.Map(expenseDto, entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            entity.UserId = userId.Value;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.Expenses.AnyAsync(e => e.ExpenseId == id))
-                    return NotFound("Gelir bulunamadı.");
-                throw;
-            }
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 5. Gelir silme
-        // DELETE: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
+        // 5. Gider silme
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            var userId = GetUserIdFromToken();
+            if (userId == null)
+                return Unauthorized();
+
             var entity = await _context.Expenses.FindAsync(id);
-            if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+            if (entity == null || entity.UserId != userId)
+                return NotFound("Gider bulunamadı veya erişim yetkiniz yok.");
 
             _context.Expenses.Remove(entity);
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
+        // 6. Son 5 gider
         [HttpGet("last5")]
         public async Task<IActionResult> GetLast5()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out var userId))
+            var userId = GetUserIdFromToken();
+            if (userId == null)
                 return Unauthorized();
 
             var data = await _context.Expenses
@@ -138,15 +145,16 @@ namespace ApiGelirGider.WebApi.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            return Ok(data);
+            var dtos = _mapper.Map<List<ExpenseDto>>(data);
+            return Ok(dtos);
         }
-        //Son beş giderr
 
+        // 7. Toplam gider
         [HttpGet("total")]
         public async Task<IActionResult> GetTotal()
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdStr, out var userId))
+            var userId = GetUserIdFromToken();
+            if (userId == null)
                 return Unauthorized();
 
             var total = await _context.Expenses
@@ -155,6 +163,5 @@ namespace ApiGelirGider.WebApi.Controllers
 
             return Ok(total);
         }
-
     }
 }

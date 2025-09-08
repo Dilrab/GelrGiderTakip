@@ -1,8 +1,8 @@
 using ApiGelirGider.DTOs.Category;
-using Humanizer;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace ApiGelirGider.WebUI.Controllers
@@ -12,7 +12,6 @@ namespace ApiGelirGider.WebUI.Controllers
         private readonly ILogger<CategoryController> _logger;
         private readonly HttpClient _client;
 
-        // ?. Constructor – HttpClientFactory ile “myClient” örneðini alýyoruz
         public CategoryController(
             ILogger<CategoryController> logger,
             IHttpClientFactory httpClientFactory)
@@ -21,13 +20,20 @@ namespace ApiGelirGider.WebUI.Controllers
             _client = httpClientFactory.CreateClient("myClient");
         }
 
-        // ?. Gelirleri Listeleme – GET: /Income/Index
+        // Kategori listesi – GET: /Category/Index
         public async Task<IActionResult> Index()
         {
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account");
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
             var response = await _client.GetAsync("api/Categories");
             if (!response.IsSuccessStatusCode)
             {
-                // Hata ya da boþ liste durumunda
+                _logger.LogWarning("Kategori listesi alýnamadý. StatusCode: {Status}", response.StatusCode);
                 return View(new List<CategoryDtoEdit>());
             }
 
@@ -36,55 +42,60 @@ namespace ApiGelirGider.WebUI.Controllers
             return View(categories);
         }
 
-        // ?. Gelir Ekleme Formu – GET: /Income/Add
+        // Kategori ekleme formu – GET: /Category/Add
         [HttpGet]
-        public IActionResult Add(CategoryController? model)
+        public IActionResult Add()
         {
-            if (model != null)
-                return View(model);
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account");
 
             return View(new CategoryDtoEdit());
         }
 
-        // ?. Gelir Ekleme / Güncelleme – POST: /Income/Post
+        // Kategori ekleme/güncelleme – POST: /Category/Post
         [HttpPost]
         public async Task<IActionResult> Post(CategoryDtoEdit model)
         {
-            // ?1. Model geçerliliði kontrolü
             if (!ModelState.IsValid)
             {
                 model.ErrorMessage = "Model geçersiz, lütfen kontrol ediniz.";
-                return View(model);
+                return View("Add", model);
             }
+
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+            {
+                model.ErrorMessage = "Oturum bulunamadý.";
+                return View("Add", model);
+            }
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
 
             try
             {
                 const string apiPath = "api/Categories";
                 HttpResponseMessage result;
 
-                // ?2. POST mu PUT mu karar veriyoruz
                 if (model.Id > 0)
                     result = await _client.PutAsync(apiPath, model.ToStringContent());
                 else
                     result = await _client.PostAsync(apiPath, model.ToStringContent());
 
-                // ?3. API yanýtýný okuyup modele yansýtýyoruz
                 var content = await result.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(content))
                     model = JsonConvert.DeserializeObject<CategoryDtoEdit>(content)!;
+
+                model.ResultMessage = "Kategori baþarýyla kaydedildi.";
+                return View("Add", model);
             }
             catch (Exception ex)
             {
-                // ?4. Hata yakalama ve loglama
-                _logger.LogError(ex, "Gelir ekleme/güncelleme sýrasýnda hata oluþtu.");
-                ModelState.AddModelError("", ex.Message);
-                model.ErrorMessage = "Bilinmeyen bir hata oluþtu.";
-                return View(model);
+                _logger.LogError(ex, "Kategori ekleme/güncelleme sýrasýnda hata oluþtu.");
+                model.ErrorMessage = "Sunucuya baðlanýlamadý veya veri iþlenemedi.";
+                return View("Add", model);
             }
-
-            // ?5. Ýþlem baþarýlýysa tekrar Add sayfasýna yönlendiriyoruz
-            return RedirectToAction("Add", "Category", model);
         }
     }
 }
-

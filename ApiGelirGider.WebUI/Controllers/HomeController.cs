@@ -1,13 +1,14 @@
 using ApiGelirGider.DTOs.Expense;
 using ApiGelirGider.DTOs.Income;
 using ApiGelirGider.WebUI.Models;
+using Dto.Dtos.Income;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace ApiGelirGider.WebUI.Controllers
 {
@@ -40,12 +41,21 @@ namespace ApiGelirGider.WebUI.Controllers
             var incomeTask = client.GetAsync("api/incomes/last5");
             var incomeTotalTask = client.GetAsync("api/incomes/total");
             var expenseTotalTask = client.GetAsync("api/expenses/total");
+            var monthlyIncomeTask = client.GetAsync("api/incomes/monthly");
 
-            await Task.WhenAll(expenseTask, incomeTask, incomeTotalTask, expenseTotalTask);
+
+            await Task.WhenAll(expenseTask, incomeTask, incomeTotalTask, expenseTotalTask, monthlyIncomeTask);
 
             var expenses = new List<ExpenseDto>();
             var incomes = new List<IncomeDto>();
             decimal totalIncome = 0, totalExpense = 0;
+
+            var monthlyIncome = new List<MonthlyIncomeDto>();
+            if (monthlyIncomeTask.Result.IsSuccessStatusCode)
+            {
+                var json = await monthlyIncomeTask.Result.Content.ReadAsStringAsync();
+                monthlyIncome = JsonConvert.DeserializeObject<List<MonthlyIncomeDto>>(json);
+            }
 
             if (expenseTask.Result.IsSuccessStatusCode)
             {
@@ -77,7 +87,10 @@ namespace ApiGelirGider.WebUI.Controllers
                 LastIncomes = incomes,
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
+                MonthlyIncome = monthlyIncome // ?? yeni eklendi
             };
+
+
 
             ViewBag.TotalIncome = model.TotalIncome;
             ViewBag.TotalExpense = model.TotalExpense;

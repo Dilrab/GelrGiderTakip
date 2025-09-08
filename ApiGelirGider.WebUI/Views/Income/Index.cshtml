@@ -1,11 +1,9 @@
-﻿@model IEnumerable<ApiGelirGider.DTOs.Income.IncomeDto>
-
+﻿@model ApiGelirGider.DTOs.Income.IncomeCreateDto
 @using System.Globalization
-@using System.Linq
 
 @{
     ViewData["Title"] = "Gelir Listesi";
-    var incomes = Model ?? Enumerable.Empty<ApiGelirGider.DTOs.Income.IncomeDto>();
+    var incomes = Model.IncomeList ?? new List<ApiGelirGider.DTOs.Income.IncomeDto>();
 }
 
 <div class="container mt-5">
@@ -21,24 +19,38 @@
         </div>
     </div>
 
+    <!-- 🔔 Mesajlar -->
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> @Model.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ResultMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> @Model.ResultMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+        </div>
+    }
+
     <div class="card shadow-sm mt-3">
         <div class="card-body table-responsive">
             <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>🔖 Kategori ID</th>
-                        <th>💸 Tutar</th>
-                        <th>📄 Kaynak</th>
-                        <th>👤 Kullanıcı</th>
+                        <th>📂 Kategori</th>
                         <th>🗓️ Tarih</th>
-                        <th style="width: 220px;">⚙️ İşlemler</th>
+                        <th>💸 Tutar</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!incomes.Any())
                     {
                         <tr>
-                            <td colspan="6" class="text-center">Kayıt bulunamadı.</td>
+                            <td colspan="3" class="text-center">Kayıt bulunamadı.</td>
                         </tr>
                     }
                     else
@@ -47,28 +59,10 @@
                         {
                             <tr>
                                 <td>@item.CategoryId</td>
-                                <td>
-                                    @item.IncomeAmount.ToString(
-                                    "C0",
-                                                        CultureInfo.GetCultureInfo("tr-TR")
-                                                        )
-                        </td>
-                        <td>@item.IncomeSource</td>
-                        <td>@item.UserId</td>
-                        <td>@item.IncomeDate.ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <form asp-controller="Income" asp-action="Delete"
-                                  asp-route-id="@item.IncomeId"
-                                  method="post" class="d-inline">
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Silmek istediğinize emin misiniz?');">
-                                    🗑️ Sil
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                                        }
+                                <td>@item.IncomeDate.ToString("yyyy-MM-dd")</td>
+                                <td>@item.IncomeAmount.ToString("C0", CultureInfo.GetCultureInfo("tr-TR"))</td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>

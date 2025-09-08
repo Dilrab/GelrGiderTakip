@@ -1,23 +1,30 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 
 namespace ApiGelirGider.DTOs.Income
 {
-    public class IncomeCreateDto: ApiGelirGider.DTOs.ResultModel.ResultModel
+    public class IncomeCreateDto : ApiGelirGider.DTOs.ResultModel.ResultModel
     {
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public decimal IncomeAmount { get; set; } // Girilecek miktar
+        public int IncomeId { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public int CategoryId { get; set; }    // Kategori FK
+        [Required(ErrorMessage = "Tutar zorunludur.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Tutar pozitif olmalıdır.")]
+        public decimal IncomeAmount { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public string IncomeSource { get; set; } // Girilecek miktar
+        [Required(ErrorMessage = "Tarih zorunludur.")]
+        public DateTime IncomeDate { get; set; }
+
+        [Required(ErrorMessage = "Kategori seçimi zorunludur.")]
+        public int CategoryId { get; set; }
+
+        public int UserId { get; set; } 
 
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public int UserId { get; set; } // ← Bu mutlaka olmalı
+        public List<SelectListItem> CategoryList { get; set; } = new();
+        public List<IncomeDto> IncomeList { get; set; } = new();
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public DateTime IncomeDate { get; set; }                // Gelir tarihi
+        public string? ResultMessage { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }

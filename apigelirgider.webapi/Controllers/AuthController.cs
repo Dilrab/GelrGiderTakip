@@ -21,13 +21,14 @@ namespace ApiGelirGider.WebApi.Controllers
             _configuration = configuration;
         }
 
+        // 🔐 Kullanıcı girişi ve token üretimi
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserLoginDto loginDto)
         {
             var user = _context.Users
                 .FirstOrDefault(x =>
                     x.UserEmail == loginDto.UserEmail &&
-                    x.Password == loginDto.Password); 
+                    x.Password == loginDto.Password); // Şifre hash'li değilse dikkat!
 
             if (user is null)
                 return Unauthorized(new { message = "Geçersiz kullanıcı bilgileri" });
@@ -42,18 +43,22 @@ namespace ApiGelirGider.WebApi.Controllers
                 {
                     Id = user.Id,
                     Email = user.UserEmail,
-                    FullName = user.UserName, // Varlıkta FullName yerine UserName varsa onu kullan.
+                    FullName = user.UserName,
+                    Role = "User"
                 }
             });
         }
 
+        // 🔐 JWT Token üretimi
         private (string token, DateTime ExpiresAt) GenerateJwtToken(User user)
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.UserEmail),             // ← virgül düzeltildi
-                new Claim(ClaimTypes.Name, user.UserName),               // veya "FullName" özel claim
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // → "nameid"
+                new Claim("id", user.Id.ToString()),                      // → özel claim
+                new Claim(ClaimTypes.Email, user.UserEmail),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, "User")                        // → rol tanımı
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -72,7 +77,7 @@ namespace ApiGelirGider.WebApi.Controllers
         }
     }
 
-    // DTO'lar → Api projesinde /DTOs klasörüne koy
+    // ✅ DTO'lar
     public class LoginResponseDto
     {
         public string Token { get; set; } = string.Empty;
@@ -87,5 +92,10 @@ namespace ApiGelirGider.WebApi.Controllers
         public string FullName { get; set; } = string.Empty;
         public string Role { get; set; } = "User";
     }
-}
 
+    public class UserLoginDto
+    {
+        public string UserEmail { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

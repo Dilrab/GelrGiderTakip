@@ -5,138 +5,103 @@
     ViewData["Title"] = "Dashboard";
     var gelir = Model.TotalIncome;
     var gider = Model.TotalExpense;
+    var bakiye = gelir - gider;
+
     var toplam = gelir + gider;
     double gelirYuzde = toplam > 0 ? (double)gelir * 100d / (double)toplam : 0d;
     double giderYuzde = toplam > 0 ? (double)gider * 100d / (double)toplam : 0d;
 
     string gelirWidth = gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture) + "%";
     string giderWidth = giderYuzde.ToString("0.##", CultureInfo.InvariantCulture) + "%";
-
-    string grafikBaslik = gelir > gider ? "Gelirler Yüksek" :
-                          gider > gelir ? "Giderler Yüksek" :
-                          "Gelir – Gider Dengede";
 }
 
-<!-- Sayfa Başlığı -->
-<div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 fw-bold text-primary">
-        <i class="fas fa-tachometer-alt me-2"></i> Dashboard
-    </h1>
-</div>
+<div class="container-fluid mt-4">
 
-<!-- Üst Kartlar -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card border-0 shadow h-100" style="border-left:5px solid #28a745;">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-success text-uppercase mb-2">Toplam Gelir</h6>
-                        <h4 class="fw-bold">@gelir.ToString("N2") ₺</h4>
-                    </div>
-                    <i class="fas fa-wallet fa-2x text-success"></i>
+    <!-- Başlık -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 fw-bold text-primary">
+            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+        </h1>
+    </div>
+
+    <!-- Üst Kartlar -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-5 border-success">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-success mb-2">Toplam Gelir</h6>
+                    <h4 class="fw-bold">@gelir.ToString("N2") ₺</h4>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow h-100" style="border-left:5px solid #dc3545;">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-danger text-uppercase mb-2">Toplam Gider</h6>
-                        <h4 class="fw-bold">@gider.ToString("N2") ₺</h4>
-                    </div>
-                    <i class="fas fa-receipt fa-2x text-danger"></i>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-5 border-danger">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-danger mb-2">Toplam Gider</h6>
+                    <h4 class="fw-bold">@gider.ToString("N2") ₺</h4>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow h-100" style="border-left:5px solid #17a2b8;">
-            <div class="card-body">
-                <h6 class="text-info text-uppercase mb-2">Gelir Oranı</h6>
-                <h4 class="fw-bold">@gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%</h4>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-5 border-info">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-info mb-2">Gelir Oranı</h6>
+                    <h4 class="fw-bold">@gelirYuzde.ToString("0.##")%</h4>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 shadow h-100" style="border-left:5px solid #ffc107;">
-            <div class="card-body">
-                <h6 class="text-warning text-uppercase mb-2">Gider Oranı</h6>
-                <h4 class="fw-bold">@giderYuzde.ToString("0.##", CultureInfo.InvariantCulture)%</h4>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Grafik ve Gelir-Gider Kartı -->
-<div class="row g-4">
-    <!-- Area Chart -->
-    <div class="col-lg-8">
-        <div class="card shadow border-0">
-            <div class="card-header bg-primary text-white">
-                <i class="fas fa-chart-line me-2"></i> @grafikBaslik
-            </div>
-            <div class="card-body">
-                <canvas id="myAreaChart"></canvas>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100 border-start border-5 border-warning">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-warning mb-2">Gider Oranı</h6>
+                    <h4 class="fw-bold">@giderYuzde.ToString("0.##")%</h4>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Gelir-Gider Dağılımı -->
-    <div class="col-lg-4">
-        <div class="card shadow border-0">
-            <div class="card-header bg-primary text-white">
-                <i class="fas fa-balance-scale me-2"></i> Gelir – Gider Dağılımı
-            </div>
-            <div class="card-body">
-                <!-- Gelir Barı -->
-                <div class="mb-3">
-                    <div class="position-relative w-100"
-                         style="height: 30px; background-color: #e9ecef; border-radius: 8px; overflow: hidden;">
-                        <div style="height:100%; width:@gelirWidth; background-color: #28a745;"></div>
-                        <div class="position-absolute top-0 start-0 w-100 h-100
-                            d-flex align-items-center justify-content-center text-white fw-bold"
-                             style="font-size: 0.8rem;">
-                            @gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%
+    <div class="row g-4 justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-balance-scale me-2"></i> Gelir – Gider Dağılımı
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar bg-success" style="width:@gelirWidth">
+                                @gelirYuzde.ToString("0.##")%
+                            </div>
                         </div>
                     </div>
-                </div>
-                <!-- Gider Barı -->
-                <div>
-                    <div class="position-relative w-100"
-                         style="height: 30px; background-color: #e9ecef; border-radius: 8px; overflow: hidden;">
-                        <div style="height:100%; width:@giderWidth; background-color: #dc3545;"></div>
-                        <div class="position-absolute top-0 start-0 w-100 h-100
-                            d-flex align-items-center justify-content-center text-white fw-bold"
-                             style="font-size: 0.8rem;">
-                            @giderYuzde.ToString("0.##", CultureInfo.InvariantCulture)%
+                    <div>
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar bg-danger" style="width:@giderWidth">
+                                @giderYuzde.ToString("0.##")%
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Sayısal Gösterim -->
-                <div class="mt-3">
-                    <p><strong>Gelir:</strong> @gelir.ToString("N2") ₺ (@gelirYuzde.ToString("0.##", CultureInfo.InvariantCulture)%)</p>
-                    <p><strong>Gider:</strong> @gider.ToString("N2") ₺ (@giderYuzde.ToString("0.##", CultureInfo.InvariantCulture)%)</p>
+                    <div class="mt-3 small text-muted">
+                        <div><strong>Gelir:</strong> @gelir.ToString("N2") ₺</div>
+                        <div><strong>Gider:</strong> @gider.ToString("N2") ₺</div>
+                        <div><strong>Bakiye:</strong> @bakiye.ToString("N2") ₺</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Son 5 Kayıt -->
-<div class="row g-4 mt-4">
-    <div class="col-lg-6">
-        <div class="card shadow border-0">
-            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #ff4b2b, #ff416c);">
-                💸 Son 5 Gider
-            </div>
-            <div class="card-body p-0">
-                @if (Model.LastExpenses?.Any() == true)
-                {
-                    <div class="table-responsive">
+    <!-- Son 5 Kayıtlar -->
+    <div class="row g-4 mt-4">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #ff4b2b, #ff416c);">
+                    💸 Son 5 Gider
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.LastExpenses?.Any() == true)
+                    {
                         <table class="table table-striped table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -154,25 +119,23 @@
                                 }
                             </tbody>
                         </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info m-3">Henüz gider verisi bulunamadı.</div>
-                }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info m-3">Henüz gider verisi bulunamadı.</div>
+                    }
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-lg-6">
-        <div class="card shadow border-0">
-            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
-                💰 Son 5 Gelir
-            </div>
-            <div class="card-body p-0">
-                @if (Model.LastIncomes?.Any() == true)
-                {
-                    <div class="table-responsive">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                    💰 Son 5 Gelir
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.LastIncomes?.Any() == true)
+                    {
                         <table class="table table-striped table-hover mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -190,12 +153,12 @@
                                 }
                             </tbody>
                         </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info m-3">Henüz gelir verisi bulunamadı.</div>
-                }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info m-3">Henüz gelir verisi bulunamadı.</div>
+                    }
+                </div>
             </div>
         </div>
     </div>

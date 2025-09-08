@@ -2,6 +2,7 @@
 {
     public class CategoryDtoEdit : CategoryCreateDto
     {
-        public int Id { get; set; }
+        public int  Id { get; set; }
+
     }
 }

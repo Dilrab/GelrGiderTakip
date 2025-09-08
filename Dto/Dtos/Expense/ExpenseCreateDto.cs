@@ -1,20 +1,33 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ApiGelirGider.DTOs.Income;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.ComponentModel.DataAnnotations;
+using ApiGelirGider.DTOs.Expense;
 
 namespace ApiGelirGider.DTOs.Expense
 {
     public class ExpenseCreateDto: ApiGelirGider.DTOs.ResultModel.ResultModel
     {
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public decimal ExpenseAmount { get; set; }               // Kullanıcının harcama miktarı
+        public int ExpenseId { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public int CategoryId { get; set; }       // Kategori FK
+        [Required(ErrorMessage = "Tutar zorunludur.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Tutar pozitif olmalıdır.")]
+        public decimal ExpenseAmount { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public int UserId { get; set; } // ← Bu mutlaka olmalı
+        [Required(ErrorMessage = "Tarih zorunludur.")]
+        public DateTime ExpenseDate { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "tipi Boş geçilemez")]
-        public DateTime ExpenseDate { get; set; }                // Harcama tarihi
+        [Required(ErrorMessage = "Kategori seçimi zorunludur.")]
+        public int CategoryId { get; set; }
+
+        public int UserId { get; set; } //  Kullanıcıya aitlik
+
+
+        public List<SelectListItem> CategoryList { get; set; } = new();
+        public List<ExpenseDto> ExpenseList { get; set; } = new();
+
+        public string? ResultMessage { get; set; }
+        public string? ErrorMessage { get; set; }
+
 
 
     }

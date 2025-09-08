@@ -5,16 +5,13 @@ using IncomeExpenseTracker.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class IncomesController : ControllerBase
     {
         private readonly ApiContext _context;
@@ -26,25 +23,23 @@ namespace ApiGelirGider.WebApi.Controllers
             _mapper = mapper;
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
-        // GET: api/incomes?categoryId=5
-        // ------------------------------------------------------------------------------------------------
         [HttpGet]
         public async Task<ActionResult<IEnumerable<IncomeDto>>> GetAll(int? categoryId = null)
         {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
             var entities = await _context.Incomes
-                .Where(x => categoryId == null || x.CategoryId == categoryId)
+                .Where(x => x.UserId == userId && (categoryId == null || x.CategoryId == categoryId))
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<IncomeDto>>(entities);
             return Ok(dtos);
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 2. Tek bir geliri getirme
-        // GET: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
         [HttpGet("{id}")]
         public async Task<ActionResult<IncomeDto>> GetById(int id)
         {
@@ -52,37 +47,39 @@ namespace ApiGelirGider.WebApi.Controllers
             if (entity == null)
                 return NotFound("Gelir bulunamadı.");
 
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId) || entity.UserId != userId)
+                return Unauthorized();
+
             var dto = _mapper.Map<IncomeDto>(entity);
             return Ok(dto);
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 3. Yeni gelir ekleme
-        // POST: api/incomes
-        // ------------------------------------------------------------------------------------------------
         [HttpPost]
         public async Task<ActionResult<IncomeDto>> Create([FromBody] IncomeDto incomeDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
             var entity = _mapper.Map<Income>(incomeDto);
+            entity.UserId = userId;
+
             _context.Incomes.Add(entity);
             await _context.SaveChangesAsync();
 
             incomeDto.IncomeId = entity.IncomeId;
-            incomeDto.ResultMessage = "Gelir ekleme başarılı";
+            incomeDto.UserId = userId;
+            incomeDto.ResultMessage = "Gelir başarıyla kaydedildi.";
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = entity.IncomeId },
-                incomeDto);
+            return CreatedAtAction(nameof(GetById), new { id = entity.IncomeId }, incomeDto);
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 4. Gelir güncelleme
-        // PUT: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] IncomeDto incomeDto)
         {
@@ -93,27 +90,20 @@ namespace ApiGelirGider.WebApi.Controllers
             if (entity == null)
                 return NotFound("Gelir bulunamadı.");
 
-            _mapper.Map(incomeDto, entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId) || entity.UserId != userId)
+                return Unauthorized();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.Incomes.AnyAsync(e => e.IncomeId == id))
-                    return NotFound("Gelir bulunamadı.");
-                throw;
-            }
+            _mapper.Map(incomeDto, entity);
+            entity.UserId = userId;
+
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ------------------------------------------------------------------------------------------------
         // 5. Gelir silme
-        // DELETE: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -121,12 +111,16 @@ namespace ApiGelirGider.WebApi.Controllers
             if (entity == null)
                 return NotFound("Gelir bulunamadı.");
 
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId) || entity.UserId != userId)
+                return Unauthorized();
+
             _context.Incomes.Remove(entity);
             await _context.SaveChangesAsync();
             return NoContent();
         }
-        // Son 5 Gelir
-        [Authorize]
+
+        // 6. Son 5 gelir
         [HttpGet("last5")]
         public async Task<IActionResult> GetLast5()
         {
@@ -140,9 +134,11 @@ namespace ApiGelirGider.WebApi.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            return Ok(data);
+            var dtos = _mapper.Map<List<IncomeDto>>(data);
+            return Ok(dtos);
         }
-        //toplam gelir
+
+        // 7. Toplam gelir
         [HttpGet("total")]
         public async Task<IActionResult> GetTotal()
         {
@@ -156,5 +152,30 @@ namespace ApiGelirGider.WebApi.Controllers
 
             return Ok(total);
         }
+
+        // 8. Aylık gelir toplamları (grafik için)
+        [HttpGet("monthly")]
+        public async Task<IActionResult> GetMonthlyIncome()
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out var userId))
+                return Unauthorized();
+
+            var data = await _context.Incomes
+                .Where(x => x.UserId == userId)
+                .GroupBy(x => new { x.IncomeDate.Year, x.IncomeDate.Month })
+                .Select(g => new
+                {
+                    Ay = $"{g.Key.Month:00}/{g.Key.Year}",
+                    Tutar = g.Sum(x => x.IncomeAmount)
+                })
+                .OrderBy(x => x.Ay)
+                .ToListAsync();
+
+            return Ok(data);
+        }
+
+
+
     }
 }

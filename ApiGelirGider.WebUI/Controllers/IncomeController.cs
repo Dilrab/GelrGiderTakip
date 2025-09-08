@@ -1,10 +1,11 @@
-﻿using ApiGelirGider.DTOs.Income;
-using Humanizer;
+﻿using ApiGelirGider.DTOs.Category;
+using ApiGelirGider.DTOs.Income;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
-using ApiGelirGider.DTOs.Category;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ApiGelirGider.WebUI.Controllers
 {
@@ -13,7 +14,6 @@ namespace ApiGelirGider.WebUI.Controllers
         private readonly ILogger<IncomeController> _logger;
         private readonly HttpClient _client;
 
-        // α. Constructor – HttpClientFactory ile “myClient” örneğini alıyoruz
         public IncomeController(
             ILogger<IncomeController> logger,
             IHttpClientFactory httpClientFactory)
@@ -22,69 +22,111 @@ namespace ApiGelirGider.WebUI.Controllers
             _client = httpClientFactory.CreateClient("myClient");
         }
 
-        // β. Gelirleri Listeleme – GET: /Income/Index
+        // ✅ Gelirleri Listeleme – GET: /Income/Index
         public async Task<IActionResult> Index()
         {
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account");
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
             var response = await _client.GetAsync("api/Incomes");
-            if (!response.IsSuccessStatusCode)
+            var model = new IncomeCreateDto();
+
+            if (response.IsSuccessStatusCode)
             {
-                // Hata ya da boş liste durumunda
-                return View(new List<IncomeDto>());
+                var json = await response.Content.ReadAsStringAsync();
+                var incomes = JsonConvert.DeserializeObject<List<IncomeDto>>(json);
+                model.IncomeList = incomes;
             }
 
-            var json = await response.Content.ReadAsStringAsync();
-            var incomes = JsonConvert.DeserializeObject<List<IncomeDto>>(json);
-            return View(incomes);
+            return View(model);
         }
 
-        // γ. Gelir Ekleme Formu – GET: /Income/Add
+        // ✅ Gelir Ekleme Formu – GET: /Income/Add
         [HttpGet]
-        public IActionResult Add(IncomeDto? model)
+        public async Task<IActionResult> Add()
         {
-            if (model != null)
-                return View(model);
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+                return RedirectToAction("Login", "Account");
 
-            return View(new IncomeDto());
+            var model = new IncomeCreateDto();
+            await LoadCategoriesAsync(model);
+
+            return View(model);
         }
 
-        // δ. Gelir Ekleme / Güncelleme – POST: /Income/Post
+        // ✅ Gelir Ekleme – POST: /Income/Post
         [HttpPost]
-        public async Task<IActionResult> Post(IncomeDto model)
+        public async Task<IActionResult> Post(IncomeCreateDto model)
         {
-            // δ1. Model geçerliliği kontrolü
             if (!ModelState.IsValid)
             {
+                await LoadCategoriesAsync(model);
                 model.ErrorMessage = "Model geçersiz, lütfen kontrol ediniz.";
-                return View(model);
+                return View("Add", model);
             }
+
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token))
+            {
+                await LoadCategoriesAsync(model);
+                model.ErrorMessage = "Oturum bulunamadı.";
+                return View("Add", model);
+            }
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
 
             try
             {
                 const string apiPath = "api/Incomes";
                 HttpResponseMessage result;
 
-                // δ2. POST mu PUT mu karar veriyoruz
                 if (model.IncomeId > 0)
                     result = await _client.PutAsync(apiPath, model.ToStringContent());
                 else
                     result = await _client.PostAsync(apiPath, model.ToStringContent());
 
-                // δ3. API yanıtını okuyup modele yansıtıyoruz
                 var content = await result.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(content))
-                    model = JsonConvert.DeserializeObject<IncomeDto>(content)!;
+                    model.ResultMessage = "Gelir başarıyla kaydedildi.";
+
+                await LoadCategoriesAsync(model);
+                return View("Add", model);
             }
             catch (Exception ex)
             {
-                // δ4. Hata yakalama ve loglama
-                _logger.LogError(ex, "Gelir ekleme/güncelleme sırasında hata oluştu.");
-                ModelState.AddModelError("", ex.Message);
-                model.ErrorMessage = "Bilinmeyen bir hata oluştu.";
-                return View(model);
+                _logger.LogError(ex, "Gelir ekleme sırasında hata oluştu.");
+                await LoadCategoriesAsync(model);
+                model.ErrorMessage = "Sunucuya bağlanılamadı veya veri işlenemedi.";
+                return View("Add", model);
             }
+        }
 
-            // δ5. İşlem başarılıysa tekrar Add sayfasına yönlendiriyoruz
-            return RedirectToAction("Add", "Income", model);
+        // ✅ Yardımcı metod: Kategorileri yükle
+        private async Task LoadCategoriesAsync(IncomeCreateDto model)
+        {
+            var token = HttpContext.Session.GetString("token");
+            if (string.IsNullOrEmpty(token)) return;
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
+
+            var response = await _client.GetAsync("api/Categories");
+            if (!response.IsSuccessStatusCode) return;
+
+            var json = await response.Content.ReadAsStringAsync();
+            var categories = JsonConvert.DeserializeObject<List<CategoryDtoEdit>>(json);
+
+            model.CategoryList = categories.Select(x => new SelectListItem
+            {
+                Value = x.Id.ToString(),
+                Text = x.CategoryName
+            }).ToList();
         }
     }
 }

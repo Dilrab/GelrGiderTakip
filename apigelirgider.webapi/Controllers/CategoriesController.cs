@@ -2,17 +2,16 @@
 using ApiGelirGider.WebApi.Context;
 using AutoMapper;
 using IncomeExpenseTracker.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace ApiGelirGider.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // 👈 Tüm endpoint’ler için token zorunlu
     public class CategoriesController : ControllerBase
     {
         private readonly ApiContext _context;
@@ -24,100 +23,95 @@ namespace ApiGelirGider.WebApi.Controllers
             _mapper = mapper;
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 1. Gelirleri listeleme (isteğe bağlı kategori filtresi)
-        // GET: api/incomes?categoryId=5
-        // ------------------------------------------------------------------------------------------------
+        // 1. Kullanıcıya özel kategori listesi
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDtoEdit>>> GetAll(int? categoryId = null)
+        public async Task<ActionResult<IEnumerable<CategoryDtoEdit>>> GetAll()
         {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null)
+                return Unauthorized("Kullanıcı kimliği alınamadı.");
+
+            int userId = int.Parse(userIdClaim.Value);
+
             var entities = await _context.Categories
-                .Where(x => categoryId == null || x.Id == categoryId)
+                .Where(x => x.UserId == userId)
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<CategoryDtoEdit>>(entities);
             return Ok(dtos);
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 2. Tek bir geliri getirme
-        // GET: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
+        // 2. Tek bir kategori getirme
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryDtoEdit>> GetById(int id)
         {
             var entity = await _context.Categories.FindAsync(id);
             if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+                return NotFound("Kategori bulunamadı.");
+
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null || entity.UserId != int.Parse(userIdClaim.Value))
+                return Forbid("Bu kategoriye erişim yetkiniz yok.");
 
             var dto = _mapper.Map<CategoryDtoEdit>(entity);
             return Ok(dto);
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 3. Yeni gelir ekleme
-        // POST: api/incomes
-        // ------------------------------------------------------------------------------------------------
+        // 3. Yeni kategori ekleme
         [HttpPost]
-        public async Task<ActionResult<CategoryDtoEdit>> Create([FromBody] CategoryDtoEdit CategoryDtoEdit)
+        public async Task<ActionResult<CategoryDtoEdit>> Create([FromBody] CategoryDtoEdit dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var entity = _mapper.Map<Category>(CategoryDtoEdit);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null)
+                return Unauthorized("Kullanıcı kimliği alınamadı.");
+
+            dto.UserId = int.Parse(userIdClaim.Value); // 👈 Kategoriye kullanıcıyı bağla
+
+            var entity = _mapper.Map<Category>(dto);
             _context.Categories.Add(entity);
             await _context.SaveChangesAsync();
 
-            CategoryDtoEdit.Id = entity.Id;
-            CategoryDtoEdit.ResultMessage = "Gelir ekleme başarılı";
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = entity.Id },
-                CategoryDtoEdit);
+            dto.Id = entity.Id;
+            dto.ResultMessage = "Kategori başarıyla eklendi.";
+            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, dto);
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 4. Gelir güncelleme
-        // PUT: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
+        // 4. Kategori güncelleme
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] CategoryDtoEdit CategoryDtoEdit)
+        public async Task<IActionResult> Update(int id, [FromBody] CategoryDtoEdit dto)
         {
-            if (id != CategoryDtoEdit.Id)
+            if (id != dto.Id)
                 return BadRequest("Yol parametresi ile DTO'daki ID uyuşmuyor.");
 
             var entity = await _context.Categories.FindAsync(id);
             if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+                return NotFound("Kategori bulunamadı.");
 
-            _mapper.Map(CategoryDtoEdit, entity);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null || entity.UserId != int.Parse(userIdClaim.Value))
+                return Forbid("Bu kategoriye erişim yetkiniz yok.");
+
+            _mapper.Map(dto, entity);
             _context.Entry(entity).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await _context.Categories.AnyAsync(e => e.Id == id))
-                    return NotFound("Gelir bulunamadı.");
-                throw;
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // ------------------------------------------------------------------------------------------------
-        // 5. Gelir silme
-        // DELETE: api/incomes/5
-        // ------------------------------------------------------------------------------------------------
+        // 5. Kategori silme
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var entity = await _context.Categories.FindAsync(id);
             if (entity == null)
-                return NotFound("Gelir bulunamadı.");
+                return NotFound("Kategori bulunamadı.");
+
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "id");
+            if (userIdClaim == null || entity.UserId != int.Parse(userIdClaim.Value))
+                return Forbid("Bu kategoriye erişim yetkiniz yok.");
 
             _context.Categories.Remove(entity);
             await _context.SaveChangesAsync();

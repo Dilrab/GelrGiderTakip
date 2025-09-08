@@ -1,16 +1,12 @@
-﻿@model IEnumerable<ApiGelirGider.DTOs.Expense.ExpenseDto>
-
+﻿@model ApiGelirGider.DTOs.Expense.ExpenseCreateDto
 @using System.Globalization
-@using System.Linq
 
 @{
     ViewData["Title"] = "Gider Listesi";
-    // Model null olabilir, bu yüzden boş listeye yedekliyoruz
-    var expenses = Model ?? Enumerable.Empty<ApiGelirGider.DTOs.Expense.ExpenseDto>();
+    var expenses = Model.ExpenseList ?? new List<ApiGelirGider.DTOs.Expense.ExpenseDto>();
 }
 
 <div class="container mt-5">
-    <!-- Başlık ve Butonlar -->
     <div class="header d-flex justify-content-between align-items-center">
         <h3 class="m-0">📁 Gider Listesi</h3>
         <div>
@@ -19,24 +15,21 @@
         </div>
     </div>
 
-    <!-- Dinamik Gider Tablosu -->
     <div class="card shadow-sm mt-3">
         <div class="card-body table-responsive">
-            <table class="table table-hover table-bordered table-custom">
+            <table class="table table-hover table-bordered">
                 <thead>
                     <tr>
-                        <th>🔖 Kategori ID</th>
+                        <th>📂 Kategori</th>
                         <th>💸 Tutar</th>
-                        <th>👤 Kullanıcı</th>
                         <th>🗓️ Tarih</th>
-                        <th style="width: 220px;">⚙️ İşlemler</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!expenses.Any())
                     {
                         <tr>
-                            <td colspan="5" class="text-center">Kayıt bulunamadı.</td>
+                            <td colspan="3" class="text-center">Kayıt bulunamadı.</td>
                         </tr>
                     }
                     else
@@ -45,30 +38,10 @@
                         {
                             <tr>
                                 <td>@item.CategoryId</td>
-                                <td>
-                                    @item.ExpenseAmount.ToString(
-                                    "C2",
-                                                        CultureInfo.GetCultureInfo("tr-TR")
-                                                        )
-                        </td>
-                        <td>@item.UserId</td>
-                        <td>@item.ExpenseDate.ToString("yyyy-MM-dd")</td>
-                        <td>
-                            <a asp-controller="Expense" asp-action="Edit"
-                               asp-route-id="@item.ExpenseId"
-                               class="btn btn-sm btn-warning me-2">✏️ Düzenle</a>
-                            <form asp-controller="Expense" asp-action="Delete"
-                                  asp-route-id="@item.ExpenseId" method="post"
-                                  class="d-inline">
-                                <button type="submit"
-                                        class="btn btn-sm btn-danger"
-                                        onclick="return confirm('Silmek istediğinize emin misiniz?');">
-                                    🗑️ Sil
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                                        }
+                                <td>@item.ExpenseAmount.ToString("C2", CultureInfo.GetCultureInfo("tr-TR"))</td>
+                                <td>@item.ExpenseDate.ToString("yyyy-MM-dd")</td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
